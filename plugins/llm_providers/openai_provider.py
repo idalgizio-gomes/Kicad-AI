@@ -1,0 +1,183 @@
+"""
+OpenAI (ChatGPT) provider implementation.
+
+Translates the plugin's provider-agnostic ChatMessage/ToolSpec/ChatResponse
+dataclasses (see llm_providers.base) to and from the OpenAI Chat Completions
+API shapes. The `openai` package is imported lazily/defensively so this
+module always imports cleanly even when the SDK is not installed — the
+plugin as a whole must never crash just because an optional provider
+dependency is missing.
+"""
+
+from __future__ import annotations
+
+import json
+
+try:
+    import openai
+except ImportError:
+    openai = None
+
+try:
+    from .base import (
+        ChatMessage,
+        ChatResponse,
+        LLMProvider,
+        ProviderError,
+        ToolCall,
+        ToolSpec,
+    )
+except ImportError:  # pragma: no cover - fallback for test/import layouts
+    from base import (  # type: ignore
+        ChatMessage,
+        ChatResponse,
+        LLMProvider,
+        ProviderError,
+        ToolCall,
+        ToolSpec,
+    )
+
+
+class OpenAIProvider(LLMProvider):
+    id = "chatgpt"
+    display_name = "ChatGPT (OpenAI)"
+
+    def default_model(self) -> str:
+        return "gpt-4o"
+
+    def send(
+        self, messages: list[ChatMessage], tools: list[ToolSpec] | None = None
+    ) -> ChatResponse:
+        if openai is None:
+            raise ProviderError(
+                "Pacote 'openai' não instalado. Instale com: pip install openai"
+            )
+        if not self.is_configured():
+            raise ProviderError(
+                "Chave de API da OpenAI em falta. Configure a API key para usar o ChatGPT."
+            )
+
+        api_messages = self._to_api_messages(messages)
+        api_tools = self._to_api_tools(tools) if tools else None
+
+        client = openai.OpenAI(api_key=self.api_key)
+
+        kwargs: dict = {
+            "model": self.model,
+            "messages": api_messages,
+        }
+        if api_tools:
+            kwargs["tools"] = api_tools
+
+        try:
+            response = client.chat.completions.create(**kwargs)
+        except openai.AuthenticationError as exc:
+            raise ProviderError(
+                f"Falha de autenticação na OpenAI — verifique a API key. ({exc})"
+            ) from exc
+        except openai.RateLimitError as exc:
+            raise ProviderError(
+                f"Limite de pedidos da OpenAI excedido. Tente novamente mais tarde. ({exc})"
+            ) from exc
+        except openai.APIConnectionError as exc:
+            raise ProviderError(
+                f"Falha de ligação à OpenAI. Verifique a rede. ({exc})"
+            ) from exc
+        except openai.APIStatusError as exc:
+            raise ProviderError(f"Erro da API OpenAI: {exc}") from exc
+
+        return self._from_api_response(response)
+
+    # -- message mapping --------------------------------------------------
+
+    def _to_api_messages(self, messages: list[ChatMessage]) -> list[dict]:
+        api_messages: list[dict] = []
+        for msg in messages:
+            if msg.role == "system":
+                api_messages.append({"role": "system", "content": msg.content})
+            elif msg.role == "user":
+                api_messages.append({"role": "user", "content": msg.content})
+            elif msg.role == "assistant":
+                entry: dict = {
+                    "role": "assistant",
+                    "content": msg.content if msg.content else None,
+                }
+                if msg.tool_calls:
+                    entry["tool_calls"] = [
+                        {
+                            "id": tc.id,
+                            "type": "function",
+                            "function": {
+                                "name": tc.name,
+                                "arguments": json.dumps(tc.arguments),
+                            },
+                        }
+                        for tc in msg.tool_calls
+                    ]
+                api_messages.append(entry)
+            elif msg.role == "tool":
+                api_messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": msg.tool_call_id,
+                        "content": msg.content,
+                    }
+                )
+        return api_messages
+
+    def _to_api_tools(self, tools: list[ToolSpec]) -> list[dict]:
+        return [
+            {
+                "type": "function",
+                "function": {
+                    "name": t.name,
+                    "description": t.description,
+                    "parameters": t.parameters,
+                },
+            }
+            for t in tools
+        ]
+
+    def _from_api_response(self, response) -> ChatResponse:
+        choice = response.choices[0]
+        message = choice.message
+        finish_reason = choice.finish_reason
+
+        content = message.content or ""
+        tool_calls: list[ToolCall] = []
+
+        if message.tool_calls:
+            for tc in message.tool_calls:
+                raw_args = tc.function.arguments or "{}"
+                try:
+                    arguments = json.loads(raw_args)
+                except json.JSONDecodeError as exc:
+                    raise ProviderError(
+                        f"Resposta da OpenAI com argumentos de ferramenta inválidos: {exc}"
+                    ) from exc
+                tool_calls.append(
+                    ToolCall(id=tc.id, name=tc.function.name, arguments=arguments)
+                )
+
+        if finish_reason == "content_filter":
+            return ChatResponse(
+                content=content,
+                tool_calls=tool_calls,
+                raw=response,
+                stop_reason="error",
+                error="Pedido recusado pelos filtros de conteúdo da OpenAI",
+            )
+
+        if finish_reason == "tool_calls":
+            stop_reason = "tool_use"
+        elif finish_reason in ("stop", "length"):
+            stop_reason = "end"
+        else:
+            stop_reason = "end"
+
+        return ChatResponse(
+            content=content,
+            tool_calls=tool_calls,
+            raw=response,
+            stop_reason=stop_reason,
+        )

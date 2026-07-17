@@ -1,0 +1,15 @@
+# KiCad Chat Assistant — requirements
+# Only external pip dependencies needed at runtime.
+
+# Process/project detection inside KiCad.
+psutil
+
+# LLM provider SDKs are OPTIONAL — install only the ones you plan to use.
+# The plugin degrades gracefully (clear error, no crash) if one is missing.
+# anthropic             # Claude
+# openai                # ChatGPT
+# google-generativeai   # Gemini
+
+# Provided by KiCad itself — not installed via pip:
+# - pcbnew   (SWIG bindings)
+# - wxPython (GUI)

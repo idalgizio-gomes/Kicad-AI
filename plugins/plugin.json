@@ -1,0 +1,29 @@
+{
+  "$schema": "https://go.kicad.org/api/schemas/v1",
+  "identifier": "com.github.idalgizio-gomes.kicad-chat-assistant",
+  "name": "KiCad Chat Assistant",
+  "description": "Assistente de chat com IA (Claude/ChatGPT/Gemini) com contexto do projeto e ações opcionais aprovadas pelo utilizador",
+  "runtime": {
+    "type": "python",
+    "version": "3"
+  },
+  "actions": [
+    {
+      "identifier": "kicad-chat-assistant-action",
+      "name": "Chat Assistant",
+      "description": "chat_action",
+      "show-button": true,
+      "scopes": [
+        "schematic",
+        "pcb"
+      ],
+      "entrypoint": "chat_action.py",
+      "icons-light": [
+        "icon.png"
+      ],
+      "icons-dark": [
+        "icon.png"
+      ]
+    }
+  ]
+}

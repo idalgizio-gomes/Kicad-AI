@@ -1,0 +1,40 @@
+{
+    "$schema": "https://go.kicad.org/pcm/schemas/v1",
+    "name": "KiCad Chat Assistant",
+    "description": "Assistente de chat com IA (Claude, ChatGPT, Gemini) dentro do KiCad, com contexto do projeto e ações opcionais sobre o esquemático/PCB",
+    "description_full": "Painel de chat dentro do KiCad que fala com Claude (Anthropic), ChatGPT (OpenAI) ou Gemini (Google), à escolha. O assistente vê o estado do projeto aberto (ficheiro, erros de DRC/ERC, componentes) e pode propor ações concretas sobre o projeto — mas NUNCA executa uma ação sem confirmação explícita do utilizador antes de aplicar qualquer alteração.",
+    "identifier": "com.github.idalgizio-gomes.kicad-chat-assistant",
+    "type": "plugin",
+    "author": {
+        "name": "Idalgízio Gomes",
+        "contact": {
+            "github": "https://github.com/idalgizio-gomes"
+        }
+    },
+    "maintainer": {
+        "name": "Idalgízio Gomes",
+        "contact": {
+            "github": "https://github.com/idalgizio-gomes"
+        }
+    },
+    "license": "MIT",
+    "resources": {
+        "homepage": ""
+    },
+    "tags": [
+        "ai",
+        "chat",
+        "llm",
+        "assistant",
+        "claude",
+        "chatgpt",
+        "gemini"
+    ],
+    "versions": [
+        {
+            "version": "2026.00.00",
+            "status": "stable",
+            "kicad_version": "9.0.0"
+        }
+    ]
+}
