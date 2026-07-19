@@ -24,8 +24,9 @@ from llm_providers import (
 def test_import_llm_providers_without_any_sdk_installed():
     """The package itself must import clean regardless of SDK availability."""
     assert "llm_providers" in sys.modules
-    assert set(PROVIDER_IDS) == {"claude", "chatgpt", "gemini"}
-    assert PROVIDER_LABELS["claude"] == "Claude (Anthropic)"
+    assert set(PROVIDER_IDS) == {"claude", "claude_cli", "chatgpt", "gemini"}
+    assert PROVIDER_LABELS["claude"] == "Claude (Anthropic - API paga)"
+    assert PROVIDER_LABELS["claude_cli"] == "Claude Code (subscrição local)"
     assert PROVIDER_LABELS["chatgpt"] == "ChatGPT (OpenAI)"
     assert PROVIDER_LABELS["gemini"] == "Gemini (Google)"
 
@@ -109,6 +110,12 @@ def test_create_provider_claude_returns_claude_provider(monkeypatch):
     provider = create_provider("claude", {})
     assert provider.id == "claude"
     assert provider.display_name == "Claude (Anthropic)"
+
+
+def test_create_provider_claude_cli_returns_claude_code_cli_provider():
+    provider = create_provider("claude_cli", {})
+    assert provider.id == "claude_cli"
+    assert provider.display_name == "Claude Code (subscrição local)"
 
 
 def test_create_provider_chatgpt_returns_openai_provider(monkeypatch):

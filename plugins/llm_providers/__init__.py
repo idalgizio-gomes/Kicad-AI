@@ -44,16 +44,20 @@ __all__ = [
     "create_provider",
 ]
 
-PROVIDER_IDS = ["claude", "chatgpt", "gemini"]
+PROVIDER_IDS = ["claude", "claude_cli", "chatgpt", "gemini"]
 
 PROVIDER_LABELS = {
-    "claude": "Claude (Anthropic)",
+    "claude": "Claude (Anthropic - API paga)",
+    "claude_cli": "Claude Code (subscrição local)",
     "chatgpt": "ChatGPT (OpenAI)",
     "gemini": "Gemini (Google)",
 }
 
 # Maps provider id -> (pip package name, env var(s) to check for an API key).
 # Order matters for env vars: first one found wins.
+# claude_cli has no entry: it shells out to the `claude` CLI binary, not a
+# pip package, so it never goes through the ImportError -> "pip install"
+# path in create_provider() below.
 _PIP_PACKAGES = {
     "claude": "anthropic",
     "chatgpt": "openai",
@@ -136,6 +140,10 @@ def create_provider(provider_id: str, cfg: dict | None = None) -> LLMProvider:
             from .claude_provider import ClaudeProvider
 
             return ClaudeProvider(api_key=api_key, model=model)
+        if provider_id == "claude_cli":
+            from .claude_code_cli_provider import ClaudeCodeCLIProvider
+
+            return ClaudeCodeCLIProvider(api_key=api_key, model=model)
         if provider_id == "chatgpt":
             from .openai_provider import OpenAIProvider
 
