@@ -161,6 +161,18 @@ class ClaudeCodeCLIProvider(LLMProvider):
                 text=True,
                 timeout=_TIMEOUT_S,
                 encoding="utf-8",
+                # `claude` resolves to a `claude.CMD` batch-file shim on
+                # Windows (npm global install). KiCad itself is a windowed
+                # GUI process with no console attached; spawning a
+                # console-subsystem child (cmd.exe running the batch file)
+                # from it makes Windows auto-allocate a new VISIBLE console
+                # window for the child, which flashes open and closed -
+                # exactly the "abriu uma linha de comando a dizer 'claude'"
+                # symptom the user reported. CREATE_NO_WINDOW suppresses
+                # that allocation; stdin/stdout/stderr stay fully piped
+                # either way, so capture is unaffected. No-op (0) on
+                # non-Windows, where there is no console to allocate.
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
             )
         except FileNotFoundError as exc:
             raise ProviderError(f"CLI 'claude' não encontrado: {exc}") from exc
