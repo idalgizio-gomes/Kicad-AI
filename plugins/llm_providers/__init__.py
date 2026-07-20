@@ -28,6 +28,20 @@ from .base import (
     ToolSpec,
 )
 
+# i18n: every string literal below is ALREADY Portuguese (this module
+# predates the i18n infrastructure) — wrapping in _() must not change any
+# wording, only make it translatable (existing tests assert on the exact pt
+# substrings). See chat_gui.py's `_()` docstring for why this is a
+# fresh-lookup trampoline rather than `from ..i18n import _`.
+try:  # pragma: no cover - import shim
+    from .. import i18n as _i18n
+except ImportError:  # pragma: no cover - import shim
+    import i18n as _i18n  # type: ignore[no-redef]
+
+
+def _(message: str) -> str:  # noqa: N807 - conventional gettext alias name
+    return _i18n._(message)
+
 __all__ = [
     "ChatMessage",
     "ToolCall",
@@ -46,11 +60,17 @@ __all__ = [
 
 PROVIDER_IDS = ["claude", "claude_cli", "chatgpt", "gemini"]
 
+# Built once at import time, so — like every other module-level constant
+# wrapped in _() before setup_i18n() has necessarily run yet — each value
+# here ends up equal to its own (Portuguese) msgid text. Callers that want a
+# LIVE translation (e.g. chat_gui.py re-rendering the provider picker after
+# a language switch) re-feed these raw strings through their own _() at
+# render time; see chat_gui.py's ChatDialog._provider_labels docstring.
 PROVIDER_LABELS = {
-    "claude": "Claude (Anthropic - API paga)",
-    "claude_cli": "Claude Code (subscrição local)",
-    "chatgpt": "ChatGPT (OpenAI)",
-    "gemini": "Gemini (Google)",
+    "claude": _("Claude (Anthropic - API paga)"),
+    "claude_cli": _("Claude Code (subscrição local)"),
+    "chatgpt": _("ChatGPT (OpenAI)"),
+    "gemini": _("Gemini (Google)"),
 }
 
 # Maps provider id -> (pip package name, env var(s) to check for an API key).
@@ -135,7 +155,7 @@ def create_provider(
         cfg = load_config()
 
     if provider_id not in PROVIDER_IDS:
-        raise ProviderError(f"Provedor desconhecido: '{provider_id}'")
+        raise ProviderError(_("Provedor desconhecido: '{id}'").format(id=provider_id))
 
     api_key = resolve_api_key(provider_id, cfg)
     providers_cfg = cfg.get("providers", {}) if isinstance(cfg, dict) else {}
@@ -164,7 +184,9 @@ def create_provider(
     except ImportError as exc:
         pip_name = _PIP_PACKAGES.get(provider_id, provider_id)
         raise ProviderError(
-            f"Pacote '{pip_name}' não instalado. Instale com: pip install {pip_name}"
+            _("Pacote '{pip_name}' não instalado. Instale com: pip install {pip_name}").format(
+                pip_name=pip_name
+            )
         ) from exc
 
     # Unreachable given the provider_id check above, but keeps mypy/pyflakes happy.

@@ -1,0 +1,375 @@
+# Portuguese translations for KiCad Chat Assistant.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the KiCad Chat
+# Assistant project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: KiCad Chat Assistant VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-07-20 04:00+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: pt\n"
+"Language-Team: pt <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: chat_action.py:182
+#, python-brace-format
+msgid "Erro inesperado ao criar o provider '{provider_id}': {exc}"
+msgstr "Erro inesperado ao criar o provider '{provider_id}': {exc}"
+
+#: chat_action.py:192
+#, python-brace-format
+msgid ""
+"{label} não tem uma API key configurada.\n"
+"\n"
+"Defina-a em {config_path} (chave 'providers.{provider_id}.api_key') ou na"
+" variável de ambiente correspondente, e volte a selecionar o provider."
+msgstr ""
+"{label} não tem uma API key configurada.\n"
+"\n"
+"Defina-a em {config_path} (chave 'providers.{provider_id}.api_key') ou na"
+" variável de ambiente correspondente, e volte a selecionar o provider."
+
+#: chat_action.py:200
+msgid "Provedor não configurado"
+msgstr "Provedor não configurado"
+
+#: chat_gui.py:161 chat_gui.py:265
+msgid "Provedor:"
+msgstr "Provedor:"
+
+#: chat_gui.py:181 chat_gui.py:266
+msgid "Modelo:"
+msgstr "Modelo:"
+
+#: chat_gui.py:191 chat_gui.py:269 chat_gui.py:338
+msgid "(padrão do fornecedor)"
+msgstr "(padrão do fornecedor)"
+
+#: chat_gui.py:199 chat_gui.py:267
+msgid "Idioma:"
+msgstr "Idioma:"
+
+#: chat_gui.py:225 chat_gui.py:268
+msgid "Enviar"
+msgstr "Enviar"
+
+#: chat_gui.py:232 chat_gui.py:285 chat_gui.py:408
+msgid "Pronto."
+msgstr "Pronto."
+
+#: chat_gui.py:302
+#, python-brace-format
+msgid "Não foi possível inicializar o fornecedor '{name}': {err}"
+msgstr "Não foi possível inicializar o fornecedor '{name}': {err}"
+
+#: chat_gui.py:323
+#, python-brace-format
+msgid "Mudou para {name}."
+msgstr "Mudou para {name}."
+
+#: chat_gui.py:337
+#, python-brace-format
+msgid "Modelo definido como {model}."
+msgstr "Modelo definido como {model}."
+
+#: chat_gui.py:351
+msgid "Nenhum fornecedor está configurado. Verifique a sua API key / instalação."
+msgstr "Nenhum fornecedor está configurado. Verifique a sua API key / instalação."
+
+#: chat_gui.py:356
+msgid "Você:"
+msgstr "Você:"
+
+#: chat_gui.py:360
+msgid "A pensar..."
+msgstr "A pensar..."
+
+#: chat_gui.py:395
+msgid "Erro."
+msgstr "Erro."
+
+#: chat_gui.py:430
+#, python-brace-format
+msgid "Custo da sessão: ${spent} / ${limit}"
+msgstr "Custo da sessão: ${spent} / ${limit}"
+
+#: chat_gui.py:435
+#, python-brace-format
+msgid "Custo da sessão: ${spent}"
+msgstr "Custo da sessão: ${spent}"
+
+#: chat_gui.py:453
+#, python-brace-format, python-format
+msgid ""
+"[aviso de custo] {pct}% do limite da sessão atingido (${spent} / "
+"${limit})."
+msgstr ""
+"[aviso de custo] {pct}% do limite da sessão atingido (${spent} / "
+"${limit})."
+
+#: chat_gui.py:489
+#, python-brace-format
+msgid ""
+"O assistente quer executar a ação:\n"
+"\n"
+"  {name}\n"
+"\n"
+"{description}\n"
+"\n"
+"Argumentos:\n"
+"{args}\n"
+"\n"
+"Permitir esta ação?"
+msgstr ""
+"O assistente quer executar a ação:\n"
+"\n"
+"  {name}\n"
+"\n"
+"{description}\n"
+"\n"
+"Argumentos:\n"
+"{args}\n"
+"\n"
+"Permitir esta ação?"
+
+#: chat_gui.py:502
+msgid "Aprovar ação?"
+msgstr "Aprovar ação?"
+
+#: chat_gui.py:523
+msgid "Assistente:"
+msgstr "Assistente:"
+
+#: chat_gui.py:530
+msgid "[aviso] Resposta vazia do fornecedor."
+msgstr "[aviso] Resposta vazia do fornecedor."
+
+#: chat_gui.py:533
+#, python-brace-format
+msgid "[ação] a propor: {name}"
+msgstr "[ação] a propor: {name}"
+
+#: chat_gui.py:539
+#, python-brace-format
+msgid "[custo] esta chamada: ${amount}"
+msgstr "[custo] esta chamada: ${amount}"
+
+#: chat_gui.py:544
+msgid " ...[truncado]"
+msgstr " ...[truncado]"
+
+#: chat_gui.py:545
+msgid "[ação] resultado"
+msgstr "[ação] resultado"
+
+#: chat_gui.py:551
+msgid "[erro]"
+msgstr "[erro]"
+
+#: actions/framework.py:77
+#, python-brace-format
+msgid "Ação duplicada: '{name}' já está registada."
+msgstr "Ação duplicada: '{name}' já está registada."
+
+#: actions/framework.py:109
+#, python-brace-format
+msgid "Erro: ferramenta desconhecida '{name}'."
+msgstr "Erro: ferramenta desconhecida '{name}'."
+
+#: actions/framework.py:124
+#, python-brace-format
+msgid "Ação recusada (erro no pedido de aprovação: {err})."
+msgstr "Ação recusada (erro no pedido de aprovação: {err})."
+
+#: actions/framework.py:133
+msgid "Ação recusada pelo utilizador."
+msgstr "Ação recusada pelo utilizador."
+
+#: actions/framework.py:142
+#, python-brace-format
+msgid "Erro ao executar {name}: {err}"
+msgstr "Erro ao executar {name}: {err}"
+
+#: actions/framework.py:207
+#, python-brace-format
+msgid "[erro] {error}"
+msgstr "[erro] {error}"
+
+#: actions/framework.py:208
+msgid "Erro desconhecido do provider."
+msgstr "Erro desconhecido do provider."
+
+#: actions/framework.py:216
+#, python-brace-format
+msgid "[ação] {name}"
+msgstr "[ação] {name}"
+
+#: actions/framework.py:220
+#, python-brace-format
+msgid "[ação] {name} → {result}"
+msgstr "[ação] {name} → {result}"
+
+#: actions/framework.py:235
+#, python-brace-format
+msgid ""
+"[aviso] Limite de {max_rounds} rondas de ferramentas atingido; a "
+"interromper o ciclo."
+msgstr ""
+"[aviso] Limite de {max_rounds} rondas de ferramentas atingido; a "
+"interromper o ciclo."
+
+#: llm_providers/__init__.py:70
+msgid "Claude (Anthropic - API paga)"
+msgstr "Claude (Anthropic - API paga)"
+
+#: llm_providers/__init__.py:71
+msgid "Claude Code (subscrição local)"
+msgstr "Claude Code (subscrição local)"
+
+#: llm_providers/__init__.py:72
+msgid "ChatGPT (OpenAI)"
+msgstr "ChatGPT (OpenAI)"
+
+#: llm_providers/__init__.py:73
+msgid "Gemini (Google)"
+msgstr "Gemini (Google)"
+
+#: llm_providers/__init__.py:158
+#, python-brace-format
+msgid "Provedor desconhecido: '{id}'"
+msgstr "Provedor desconhecido: '{id}'"
+
+#: llm_providers/__init__.py:187
+#, python-brace-format
+msgid "Pacote '{pip_name}' não instalado. Instale com: pip install {pip_name}"
+msgstr "Pacote '{pip_name}' não instalado. Instale com: pip install {pip_name}"
+
+#: llm_providers/claude_provider.py:165
+msgid "Pedido recusado pelos filtros de segurança"
+msgstr "Pedido recusado pelos filtros de segurança"
+
+#: llm_providers/claude_provider.py:206
+msgid "Pacote 'anthropic' não instalado. Instale com: pip install anthropic"
+msgstr "Pacote 'anthropic' não instalado. Instale com: pip install anthropic"
+
+#: llm_providers/claude_provider.py:213
+msgid ""
+"Chave de API da Anthropic em falta. Configure a API key do Claude nas "
+"definições do plugin."
+msgstr ""
+"Chave de API da Anthropic em falta. Configure a API key do Claude nas "
+"definições do plugin."
+
+#: llm_providers/claude_provider.py:230
+#, python-brace-format
+msgid ""
+"Autenticação falhou: a chave de API do Claude é inválida ou foi revogada."
+" ({err})"
+msgstr ""
+"Autenticação falhou: a chave de API do Claude é inválida ou foi revogada."
+" ({err})"
+
+#: llm_providers/claude_provider.py:237
+#, python-brace-format
+msgid ""
+"Limite de pedidos atingido na API do Claude. Aguarde um momento e tente "
+"novamente. ({err})"
+msgstr ""
+"Limite de pedidos atingido na API do Claude. Aguarde um momento e tente "
+"novamente. ({err})"
+
+#: llm_providers/claude_provider.py:244
+#, python-brace-format
+msgid ""
+"Não foi possível ligar à API do Claude. Verifique a sua ligação à "
+"internet. ({err})"
+msgstr ""
+"Não foi possível ligar à API do Claude. Verifique a sua ligação à "
+"internet. ({err})"
+
+#: llm_providers/claude_provider.py:250
+#, python-brace-format
+msgid "A API do Claude devolveu um erro: {err}"
+msgstr "A API do Claude devolveu um erro: {err}"
+
+#: llm_providers/gemini_provider.py:187
+msgid ""
+"Pacote 'google-generativeai' não instalado. Instale com: pip install "
+"google-generativeai"
+msgstr ""
+"Pacote 'google-generativeai' não instalado. Instale com: pip install "
+"google-generativeai"
+
+#: llm_providers/gemini_provider.py:194
+msgid ""
+"Falta a API key do Gemini. Configure-a nas definições ou na variável de "
+"ambiente GOOGLE_API_KEY / GEMINI_API_KEY."
+msgstr ""
+"Falta a API key do Gemini. Configure-a nas definições ou na variável de "
+"ambiente GOOGLE_API_KEY / GEMINI_API_KEY."
+
+#: llm_providers/gemini_provider.py:213
+#, python-brace-format
+msgid "Erro na API Gemini: {err}"
+msgstr "Erro na API Gemini: {err}"
+
+#: llm_providers/gemini_provider.py:233
+#, python-brace-format
+msgid "Pedido bloqueado pelos filtros de segurança do Gemini: {reason}"
+msgstr "Pedido bloqueado pelos filtros de segurança do Gemini: {reason}"
+
+#: llm_providers/gemini_provider.py:243
+msgid "O Gemini não devolveu nenhuma resposta (candidato vazio)."
+msgstr "O Gemini não devolveu nenhuma resposta (candidato vazio)."
+
+#: llm_providers/gemini_provider.py:255
+#, python-brace-format
+msgid "Resposta do Gemini sem conteúdo (finish_reason={finish})."
+msgstr "Resposta do Gemini sem conteúdo (finish_reason={finish})."
+
+#: llm_providers/openai_provider.py:66
+msgid "Pacote 'openai' não instalado. Instale com: pip install openai"
+msgstr "Pacote 'openai' não instalado. Instale com: pip install openai"
+
+#: llm_providers/openai_provider.py:70
+msgid "Chave de API da OpenAI em falta. Configure a API key para usar o ChatGPT."
+msgstr "Chave de API da OpenAI em falta. Configure a API key para usar o ChatGPT."
+
+#: llm_providers/openai_provider.py:89
+#, python-brace-format
+msgid "Falha de autenticação na OpenAI — verifique a API key. ({err})"
+msgstr "Falha de autenticação na OpenAI — verifique a API key. ({err})"
+
+#: llm_providers/openai_provider.py:96
+#, python-brace-format
+msgid "Limite de pedidos da OpenAI excedido. Tente novamente mais tarde. ({err})"
+msgstr "Limite de pedidos da OpenAI excedido. Tente novamente mais tarde. ({err})"
+
+#: llm_providers/openai_provider.py:101
+#, python-brace-format
+msgid "Falha de ligação à OpenAI. Verifique a rede. ({err})"
+msgstr "Falha de ligação à OpenAI. Verifique a rede. ({err})"
+
+#: llm_providers/openai_provider.py:104
+#, python-brace-format
+msgid "Erro da API OpenAI: {err}"
+msgstr "Erro da API OpenAI: {err}"
+
+#: llm_providers/openai_provider.py:174
+#, python-brace-format
+msgid "Resposta da OpenAI com argumentos de ferramenta inválidos: {err}"
+msgstr "Resposta da OpenAI com argumentos de ferramenta inválidos: {err}"
+
+#: llm_providers/openai_provider.py:187
+msgid "Pedido recusado pelos filtros de conteúdo da OpenAI"
+msgstr "Pedido recusado pelos filtros de conteúdo da OpenAI"
+

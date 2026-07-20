@@ -37,6 +37,19 @@ except ImportError:  # pragma: no cover - test/standalone import path
         ToolSpec,
     )
 
+# i18n: every string literal below is ALREADY Portuguese — wrapping in _()
+# must not change any wording, only make it translatable (existing tests
+# assert on exact pt substrings). See chat_gui.py's `_()` docstring for why
+# this is a fresh-lookup trampoline rather than `from ..i18n import _`.
+try:  # pragma: no cover - import shim
+    from .. import i18n as _i18n
+except ImportError:  # pragma: no cover - import shim
+    import i18n as _i18n  # type: ignore[no-redef]
+
+
+def _(message: str) -> str:  # noqa: N807 - conventional gettext alias name
+    return _i18n._(message)
+
 
 # Keys that the Gemini function-declaration schema validator rejects. JSON
 # Schema produced for the other providers may contain them, so strip them
@@ -170,13 +183,17 @@ class GeminiProvider(LLMProvider):
     ) -> ChatResponse:
         if genai is None:
             raise ProviderError(
-                "Pacote 'google-generativeai' não instalado. "
-                "Instale com: pip install google-generativeai"
+                _(
+                    "Pacote 'google-generativeai' não instalado. "
+                    "Instale com: pip install google-generativeai"
+                )
             )
         if not self.is_configured():
             raise ProviderError(
-                "Falta a API key do Gemini. Configure-a nas definições ou "
-                "na variável de ambiente GOOGLE_API_KEY / GEMINI_API_KEY."
+                _(
+                    "Falta a API key do Gemini. Configure-a nas definições ou "
+                    "na variável de ambiente GOOGLE_API_KEY / GEMINI_API_KEY."
+                )
             )
 
         system_instruction, history = self._build_history(messages)
@@ -193,7 +210,7 @@ class GeminiProvider(LLMProvider):
         except ProviderError:
             raise
         except Exception as exc:  # noqa: BLE001 - SDK raises many types
-            raise ProviderError(f"Erro na API Gemini: {exc}") from exc
+            raise ProviderError(_("Erro na API Gemini: {err}").format(err=exc)) from exc
 
         return self._parse_response(response)
 
@@ -212,7 +229,9 @@ class GeminiProvider(LLMProvider):
             return ChatResponse(
                 content="",
                 stop_reason="error",
-                error=f"Pedido bloqueado pelos filtros de segurança do Gemini: {block_reason}",
+                error=_(
+                    "Pedido bloqueado pelos filtros de segurança do Gemini: {reason}"
+                ).format(reason=block_reason),
                 raw=response,
             )
 
@@ -221,7 +240,7 @@ class GeminiProvider(LLMProvider):
             return ChatResponse(
                 content="",
                 stop_reason="error",
-                error="O Gemini não devolveu nenhuma resposta (candidato vazio).",
+                error=_("O Gemini não devolveu nenhuma resposta (candidato vazio)."),
                 raw=response,
             )
 
@@ -233,7 +252,9 @@ class GeminiProvider(LLMProvider):
             return ChatResponse(
                 content="",
                 stop_reason="error",
-                error=f"Resposta do Gemini sem conteúdo (finish_reason={finish}).",
+                error=_("Resposta do Gemini sem conteúdo (finish_reason={finish}).").format(
+                    finish=finish
+                ),
                 raw=response,
             )
 

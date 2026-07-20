@@ -37,6 +37,19 @@ except ImportError:  # pragma: no cover - fallback for test/import layouts
         ToolSpec,
     )
 
+# i18n: every string literal below is ALREADY Portuguese — wrapping in _()
+# must not change any wording, only make it translatable (existing tests
+# assert on exact pt substrings). See chat_gui.py's `_()` docstring for why
+# this is a fresh-lookup trampoline rather than `from ..i18n import _`.
+try:  # pragma: no cover - import shim
+    from .. import i18n as _i18n
+except ImportError:  # pragma: no cover - import shim
+    import i18n as _i18n  # type: ignore[no-redef]
+
+
+def _(message: str) -> str:  # noqa: N807 - conventional gettext alias name
+    return _i18n._(message)
+
 
 class OpenAIProvider(LLMProvider):
     id = "chatgpt"
@@ -50,11 +63,11 @@ class OpenAIProvider(LLMProvider):
     ) -> ChatResponse:
         if openai is None:
             raise ProviderError(
-                "Pacote 'openai' não instalado. Instale com: pip install openai"
+                _("Pacote 'openai' não instalado. Instale com: pip install openai")
             )
         if not self.is_configured():
             raise ProviderError(
-                "Chave de API da OpenAI em falta. Configure a API key para usar o ChatGPT."
+                _("Chave de API da OpenAI em falta. Configure a API key para usar o ChatGPT.")
             )
 
         api_messages = self._to_api_messages(messages)
@@ -73,18 +86,22 @@ class OpenAIProvider(LLMProvider):
             response = client.chat.completions.create(**kwargs)
         except openai.AuthenticationError as exc:
             raise ProviderError(
-                f"Falha de autenticação na OpenAI — verifique a API key. ({exc})"
+                _("Falha de autenticação na OpenAI — verifique a API key. ({err})").format(
+                    err=exc
+                )
             ) from exc
         except openai.RateLimitError as exc:
             raise ProviderError(
-                f"Limite de pedidos da OpenAI excedido. Tente novamente mais tarde. ({exc})"
+                _(
+                    "Limite de pedidos da OpenAI excedido. Tente novamente mais tarde. ({err})"
+                ).format(err=exc)
             ) from exc
         except openai.APIConnectionError as exc:
             raise ProviderError(
-                f"Falha de ligação à OpenAI. Verifique a rede. ({exc})"
+                _("Falha de ligação à OpenAI. Verifique a rede. ({err})").format(err=exc)
             ) from exc
         except openai.APIStatusError as exc:
-            raise ProviderError(f"Erro da API OpenAI: {exc}") from exc
+            raise ProviderError(_("Erro da API OpenAI: {err}").format(err=exc)) from exc
 
         return self._from_api_response(response)
 
@@ -153,7 +170,9 @@ class OpenAIProvider(LLMProvider):
                     arguments = json.loads(raw_args)
                 except json.JSONDecodeError as exc:
                     raise ProviderError(
-                        f"Resposta da OpenAI com argumentos de ferramenta inválidos: {exc}"
+                        _(
+                            "Resposta da OpenAI com argumentos de ferramenta inválidos: {err}"
+                        ).format(err=exc)
                     ) from exc
                 tool_calls.append(
                     ToolCall(id=tc.id, name=tc.function.name, arguments=arguments)
@@ -165,7 +184,7 @@ class OpenAIProvider(LLMProvider):
                 tool_calls=tool_calls,
                 raw=response,
                 stop_reason="error",
-                error="Pedido recusado pelos filtros de conteúdo da OpenAI",
+                error=_("Pedido recusado pelos filtros de conteúdo da OpenAI"),
             )
 
         if finish_reason == "tool_calls":

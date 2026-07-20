@@ -30,6 +30,20 @@ except ImportError:  # pragma: no cover - fallback for test import via conftest
         ToolSpec,
     )
 
+# i18n: every string literal below is ALREADY Portuguese — wrapping in _()
+# must not change any wording, only make it translatable (existing tests
+# assert on exact pt substrings). See chat_gui.py's `_()` docstring for why
+# this is a fresh-lookup trampoline rather than `from ..i18n import _`.
+try:  # pragma: no cover - import shim
+    from .. import i18n as _i18n
+except ImportError:  # pragma: no cover - import shim
+    import i18n as _i18n  # type: ignore[no-redef]
+
+
+def _(message: str) -> str:  # noqa: N807 - conventional gettext alias name
+    return _i18n._(message)
+
+
 # Import the SDK lazily-tolerant: keep the module importable without it.
 try:
     import anthropic  # type: ignore
@@ -148,7 +162,7 @@ class ClaudeProvider(LLMProvider):
             return ChatResponse(
                 content="",
                 stop_reason="error",
-                error="Pedido recusado pelos filtros de segurança",
+                error=_("Pedido recusado pelos filtros de segurança"),
                 raw=response,
             )
 
@@ -188,13 +202,17 @@ class ClaudeProvider(LLMProvider):
     ) -> ChatResponse:
         if anthropic is None:
             raise ProviderError(
-                "Pacote 'anthropic' não instalado. "
-                "Instale com: pip install anthropic"
+                _(
+                    "Pacote 'anthropic' não instalado. "
+                    "Instale com: pip install anthropic"
+                )
             )
         if not self.is_configured():
             raise ProviderError(
-                "Chave de API da Anthropic em falta. Configure a API key "
-                "do Claude nas definições do plugin."
+                _(
+                    "Chave de API da Anthropic em falta. Configure a API key "
+                    "do Claude nas definições do plugin."
+                )
             )
 
         request = self._build_request(messages, tools)
@@ -208,22 +226,28 @@ class ClaudeProvider(LLMProvider):
             )
         except anthropic.AuthenticationError as exc:
             raise ProviderError(
-                "Autenticação falhou: a chave de API do Claude é inválida "
-                f"ou foi revogada. ({exc})"
+                _(
+                    "Autenticação falhou: a chave de API do Claude é inválida "
+                    "ou foi revogada. ({err})"
+                ).format(err=exc)
             ) from exc
         except anthropic.RateLimitError as exc:
             raise ProviderError(
-                "Limite de pedidos atingido na API do Claude. Aguarde um "
-                f"momento e tente novamente. ({exc})"
+                _(
+                    "Limite de pedidos atingido na API do Claude. Aguarde um "
+                    "momento e tente novamente. ({err})"
+                ).format(err=exc)
             ) from exc
         except anthropic.APIConnectionError as exc:
             raise ProviderError(
-                "Não foi possível ligar à API do Claude. Verifique a sua "
-                f"ligação à internet. ({exc})"
+                _(
+                    "Não foi possível ligar à API do Claude. Verifique a sua "
+                    "ligação à internet. ({err})"
+                ).format(err=exc)
             ) from exc
         except anthropic.APIStatusError as exc:
             raise ProviderError(
-                f"A API do Claude devolveu um erro: {exc}"
+                _("A API do Claude devolveu um erro: {err}").format(err=exc)
             ) from exc
 
         return self._parse_response(response)

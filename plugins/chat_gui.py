@@ -14,17 +14,61 @@ The only exception is ``ChatMessage``: the dialog has to build the initial
 ``run_tool_loop``. It is imported lazily (relative first, absolute fallback)
 inside a small helper so the module still imports without the provider package
 on the path.
+
+i18n: every user-facing string in this file goes through the module-level
+``_()`` defined below. It is a small trampoline into ``i18n._`` looked up
+FRESH on every call — see its docstring for why a plain
+``from .i18n import _`` would silently break live language switching.
 """
 
 from __future__ import annotations
 
-import gettext
 import json
 import threading
 
 import wx
 
-_ = gettext.gettext
+try:  # pragma: no cover - import shim
+    from . import i18n as _i18n
+    from .i18n import SUPPORTED_LANGUAGES, current_language, setup_i18n
+except ImportError:  # pragma: no cover - import shim
+    import i18n as _i18n  # type: ignore
+    from i18n import SUPPORTED_LANGUAGES, current_language, setup_i18n  # type: ignore
+
+
+def _(message: str) -> str:  # noqa: N807 - conventional gettext alias name
+    """Translate ``message`` using whatever language is CURRENTLY active.
+
+    Deliberately NOT ``from .i18n import _``: that form copies whatever
+    object ``i18n._`` happens to reference at import time into THIS
+    module's namespace, and Python's ``from x import y`` never re-reads the
+    source module afterwards. When ``setup_i18n()`` later rebinds
+    ``i18n._`` (from this module, from ``chat_action.py``, or from anywhere
+    else), a snapshot import here would keep calling the stale (usually
+    identity) function forever — the exact "dynamic message stays in the
+    old language after switching" bug the i18n skill guide calls out.
+    Looking up ``_i18n._`` fresh on every call instead always sees the
+    latest binding.
+    """
+    return _i18n._(message)
+
+
+# Native display names for the language picker — NOT translated (a language's
+# own name is conventionally shown in that language, e.g. "Deutsch" even in
+# an English UI).
+_LANGUAGE_NAMES = {
+    "en": "English",
+    "pt": "Português",
+    "es": "Español",
+    "fr": "Français",
+    "de": "Deutsch",
+    "it": "Italiano",
+    "nl": "Nederlands",
+    "pl": "Polski",
+    "gl": "Galego",
+    "ca": "Català",
+    "zh": "中文",
+}
 
 # Visual truncation limit for long tool results shown in the history control.
 _TOOL_RESULT_PREVIEW = 500
@@ -67,13 +111,22 @@ class ChatDialog(wx.Dialog):
     ):
         super().__init__(
             parent,
-            title=_("KiCad Chat Assistant"),
-            size=(720, 560),
+            # "KiCad Chat Assistant" is the product name — deliberately not
+            # wrapped in _(), a proper noun is not translated.
+            title="KiCad Chat Assistant",
+            size=(760, 560),
             style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER,
         )
 
         self._provider_factory = provider_factory
         self._provider_ids = list(provider_ids)
+        # Raw (pt-source) labels, e.g. {"claude": "Claude (Anthropic - API
+        # paga)"} — llm_providers.PROVIDER_LABELS wraps each value in _() at
+        # MODULE IMPORT time (before setup_i18n() typically runs), so what
+        # lands here is effectively the untranslated pt msgid text. That is
+        # exactly what we want: re-feeding it through the live _() below at
+        # render time (see _retranslate_static_labels) translates it fresh
+        # for whatever language is active then.
         self._provider_labels = dict(provider_labels)
         self._registry = registry
         self._run_tool_loop = run_tool_loop
@@ -103,17 +156,18 @@ class ChatDialog(wx.Dialog):
         panel = wx.Panel(self)
         outer = wx.BoxSizer(wx.VERTICAL)
 
-        # Top row: provider chooser.
+        # Top row: provider chooser, model override, language picker.
         top = wx.BoxSizer(wx.HORIZONTAL)
+        self._provider_label = wx.StaticText(panel, label=_("Provedor:"))
         top.Add(
-            wx.StaticText(panel, label=_("Provider:")),
+            self._provider_label,
             0,
             wx.ALIGN_CENTER_VERTICAL | wx.RIGHT,
             6,
         )
         self._provider_choice = wx.Choice(
             panel,
-            choices=[self._provider_labels.get(pid, pid) for pid in self._provider_ids],
+            choices=[_(self._provider_labels.get(pid, pid)) for pid in self._provider_ids],
         )
         if self._provider_ids:
             self._provider_choice.SetSelection(0)
@@ -124,8 +178,9 @@ class ChatDialog(wx.Dialog):
         # reads its own self.model). Empty means "provider's own default".
         # Applied on Enter so a typo doesn't recreate the provider on every
         # keystroke.
+        self._model_label = wx.StaticText(panel, label=_("Modelo:"))
         top.Add(
-            wx.StaticText(panel, label=_("Model:")),
+            self._model_label,
             0,
             wx.ALIGN_CENTER_VERTICAL | wx.RIGHT,
             6,
@@ -133,9 +188,26 @@ class ChatDialog(wx.Dialog):
         self._model_input = wx.TextCtrl(
             panel, style=wx.TE_PROCESS_ENTER, size=(160, -1)
         )
-        self._model_input.SetHint(_("(provider default)"))
+        self._model_input.SetHint(_("(padrão do fornecedor)"))
         self._model_input.Bind(wx.EVT_TEXT_ENTER, self._on_model_change)
-        top.Add(self._model_input, 0, wx.ALIGN_CENTER_VERTICAL)
+        top.Add(self._model_input, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 12)
+
+        # Language picker — see _on_language_change / _retranslate_static_labels
+        # for the "re-render live" pattern (static wx widgets never
+        # auto-update; each needs an explicit .SetLabel()/.SetHint() call
+        # after switching).
+        self._lang_label = wx.StaticText(panel, label=_("Idioma:"))
+        top.Add(self._lang_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
+        self._lang_choice = wx.Choice(
+            panel,
+            choices=[_LANGUAGE_NAMES.get(code, code) for code in SUPPORTED_LANGUAGES],
+        )
+        try:
+            self._lang_choice.SetSelection(SUPPORTED_LANGUAGES.index(current_language()))
+        except ValueError:
+            self._lang_choice.SetSelection(0)
+        self._lang_choice.Bind(wx.EVT_CHOICE, self._on_language_change)
+        top.Add(self._lang_choice, 0, wx.ALIGN_CENTER_VERTICAL)
         outer.Add(top, 0, wx.EXPAND | wx.ALL, 8)
 
         # History (read-only, rich so we can visually distinguish speakers).
@@ -150,14 +222,14 @@ class ChatDialog(wx.Dialog):
         self._input = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER)
         self._input.Bind(wx.EVT_TEXT_ENTER, self._on_send)
         bottom.Add(self._input, 1, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
-        self._send_btn = wx.Button(panel, label=_("Send"))
+        self._send_btn = wx.Button(panel, label=_("Enviar"))
         self._send_btn.Bind(wx.EVT_BUTTON, self._on_send)
         bottom.Add(self._send_btn, 0, wx.ALIGN_CENTER_VERTICAL)
         outer.Add(bottom, 0, wx.EXPAND | wx.ALL, 8)
 
         # Status + cumulative session cost, side by side.
         status_row = wx.BoxSizer(wx.HORIZONTAL)
-        self._status = wx.StaticText(panel, label=_("Ready."))
+        self._status = wx.StaticText(panel, label=_("Pronto."))
         status_row.Add(self._status, 1, wx.ALIGN_CENTER_VERTICAL)
         self._cost_label = wx.StaticText(panel, label="")
         status_row.Add(self._cost_label, 0, wx.ALIGN_CENTER_VERTICAL)
@@ -166,6 +238,54 @@ class ChatDialog(wx.Dialog):
         panel.SetSizer(outer)
         self._input.SetFocus()
         self._update_cost_label()
+
+    # --------------------------------------------------------------- i18n ---
+    def _on_language_change(self, _event):
+        idx = self._lang_choice.GetSelection()
+        if idx == wx.NOT_FOUND or idx >= len(SUPPORTED_LANGUAGES):
+            return
+        lang = SUPPORTED_LANGUAGES[idx]
+        if lang == current_language():
+            return
+        setup_i18n(lang)
+        self._retranslate_static_labels()
+
+    def _retranslate_static_labels(self):
+        """Re-render every STATIC widget label after a live language switch.
+
+        ``_()`` is looked up fresh on every call (see the module-level
+        trampoline above), so every NEW message generated from now on
+        already comes out in the new language automatically. But wx widgets
+        never "auto-update" just because the active translation changed —
+        each one needs an explicit .SetLabel()/.SetHint() call with the
+        freshly-translated text, done here. History content already printed
+        BEFORE the switch is intentionally left in the old language — an
+        accepted, documented limitation (see the i18n skill guide).
+        """
+        self._provider_label.SetLabel(_("Provedor:"))
+        self._model_label.SetLabel(_("Modelo:"))
+        self._lang_label.SetLabel(_("Idioma:"))
+        self._send_btn.SetLabel(_("Enviar"))
+        self._model_input.SetHint(_("(padrão do fornecedor)"))
+
+        # Provider choice list: rebuild from the raw pt-source labels so
+        # each entry re-translates instead of staying frozen at whatever
+        # language was active when the dialog was constructed.
+        selection = self._provider_choice.GetSelection()
+        self._provider_choice.Set(
+            [_(self._provider_labels.get(pid, pid)) for pid in self._provider_ids]
+        )
+        if selection != wx.NOT_FOUND:
+            self._provider_choice.SetSelection(selection)
+
+        # Don't stomp a genuinely busy status ("A pensar...") mid-turn — the
+        # next turn will render fresh text anyway. Idle state is the normal
+        # time to switch, so re-render it explicitly.
+        if not self._busy:
+            self._set_status(_("Pronto."))
+        self._update_cost_label()
+
+        self.Layout()
 
     # -------------------------------------------------------- provider mgmt ---
     def _create_provider(self, provider_id, model=None):
@@ -179,8 +299,8 @@ class ChatDialog(wx.Dialog):
         except Exception as exc:  # ProviderError or anything else
             self._provider = None
             self._append_error(
-                _("Could not initialise provider '{name}': {err}").format(
-                    name=self._provider_labels.get(provider_id, provider_id),
+                _("Não foi possível inicializar o fornecedor '{name}': {err}").format(
+                    name=_(self._provider_labels.get(provider_id, provider_id)),
                     err=exc,
                 )
             )
@@ -200,8 +320,8 @@ class ChatDialog(wx.Dialog):
         self._create_provider(provider_id)
         if self._provider is not None:
             self._set_status(
-                _("Switched to {name}.").format(
-                    name=self._provider_labels.get(provider_id, provider_id)
+                _("Mudou para {name}.").format(
+                    name=_(self._provider_labels.get(provider_id, provider_id))
                 )
             )
 
@@ -214,8 +334,8 @@ class ChatDialog(wx.Dialog):
         self._create_provider(self._provider_id, model)
         if self._provider is not None:
             self._set_status(
-                _("Model set to {model}.").format(
-                    model=model or _("(provider default)")
+                _("Modelo definido como {model}.").format(
+                    model=model or _("(padrão do fornecedor)")
                 )
             )
 
@@ -228,16 +348,16 @@ class ChatDialog(wx.Dialog):
             return
         if self._provider is None:
             self._append_error(
-                _("No provider is configured. Check your API key / installation.")
+                _("Nenhum fornecedor está configurado. Verifique a sua API key / instalação.")
             )
             return
 
         self._input.SetValue("")
-        self._append_line(_("You:") + " " + text)
+        self._append_line(_("Você:") + " " + text)
         self._messages.append(_make_message("user", text))
 
         self._set_busy(True)
-        self._set_status(_("Thinking..."))
+        self._set_status(_("A pensar..."))
 
         # Captured BEFORE the worker thread runs, on the main thread, while
         # self._messages still holds only what's rendered so far. Must NOT
@@ -272,7 +392,7 @@ class ChatDialog(wx.Dialog):
         except Exception as exc:  # ProviderError or any unexpected failure
             wx.CallAfter(self._append_error, str(exc))
             wx.CallAfter(self._set_busy, False)
-            wx.CallAfter(self._set_status, _("Error."))
+            wx.CallAfter(self._set_status, _("Erro."))
 
     def _finish_turn(self, updated_messages, pre_turn_len):
         """Main-thread: reconcile the message list and render new assistant /
@@ -285,7 +405,7 @@ class ChatDialog(wx.Dialog):
             self._render_message(msg)
         self._recompute_session_cost()
         self._set_busy(False)
-        self._set_status(_("Ready."))
+        self._set_status(_("Pronto."))
 
     def _recompute_session_cost(self):
         """Sum cost_usd across every message's meta, not an incremental
@@ -307,12 +427,12 @@ class ChatDialog(wx.Dialog):
             self._cost_label.SetLabel("")
             return
         if self._cost_alert_limit_usd:
-            text = _("Session cost: ${spent} / ${limit}").format(
+            text = _("Custo da sessão: ${spent} / ${limit}").format(
                 spent=f"{self._session_cost_usd:.4f}",
                 limit=f"{self._cost_alert_limit_usd:.2f}",
             )
         else:
-            text = _("Session cost: ${spent}").format(
+            text = _("Custo da sessão: ${spent}").format(
                 spent=f"{self._session_cost_usd:.4f}"
             )
         self._cost_label.SetLabel("   " + text)
@@ -330,7 +450,7 @@ class ChatDialog(wx.Dialog):
                 pct = int(threshold * 100)
                 self._append_line(
                     _(
-                        "[cost warning] {pct}% of session limit reached "
+                        "[aviso de custo] {pct}% do limite da sessão atingido "
                         "(${spent} / ${limit})."
                     ).format(
                         pct=pct,
@@ -366,11 +486,11 @@ class ChatDialog(wx.Dialog):
                 except Exception:
                     args = str(getattr(tool_call, "arguments", ""))
                 message = _(
-                    "The assistant wants to run the action:\n\n"
+                    "O assistente quer executar a ação:\n\n"
                     "  {name}\n\n"
                     "{description}\n\n"
-                    "Arguments:\n{args}\n\n"
-                    "Allow this action?"
+                    "Argumentos:\n{args}\n\n"
+                    "Permitir esta ação?"
                 ).format(
                     name=tool_call.name,
                     description=description,
@@ -379,7 +499,7 @@ class ChatDialog(wx.Dialog):
                 dlg = wx.MessageDialog(
                     self,
                     message,
-                    _("Approve action?"),
+                    _("Aprovar ação?"),
                     wx.YES_NO | wx.ICON_QUESTION | wx.NO_DEFAULT,
                 )
                 result["ok"] = dlg.ShowModal() == wx.ID_YES
@@ -400,35 +520,35 @@ class ChatDialog(wx.Dialog):
 
         if role == "assistant":
             if content.strip():
-                self._append_line(_("Assistant:") + " " + content.strip())
+                self._append_line(_("Assistente:") + " " + content.strip())
             elif not tool_calls:
                 # Never render nothing at all for a completed turn — an
                 # empty reply with no tool calls is a real (if rare)
                 # provider outcome, not a bug in the GUI, and staying
                 # silent here previously made it indistinguishable from
                 # the turn never having happened.
-                self._append_line(_("[warning] Empty response from provider."))
+                self._append_line(_("[aviso] Resposta vazia do fornecedor."))
             for tc in tool_calls:
                 self._append_line(
-                    _("[action] proposing: {name}").format(name=tc.name)
+                    _("[ação] a propor: {name}").format(name=tc.name)
                 )
             meta = getattr(msg, "meta", None) or {}
             cost_usd = meta.get("cost_usd")
             if isinstance(cost_usd, (int, float)):
                 self._append_line(
-                    _("[cost] this call: ${amount}").format(amount=f"{cost_usd:.4f}")
+                    _("[custo] esta chamada: ${amount}").format(amount=f"{cost_usd:.4f}")
                 )
         elif role == "tool":
             preview = content.strip()
             if len(preview) > _TOOL_RESULT_PREVIEW:
-                preview = preview[:_TOOL_RESULT_PREVIEW] + _(" ...[truncated]")
-            self._append_line(_("[action] result") + " -> " + preview)
+                preview = preview[:_TOOL_RESULT_PREVIEW] + _(" ...[truncado]")
+            self._append_line(_("[ação] resultado") + " -> " + preview)
 
     def _append_line(self, text):
         self._history.AppendText(text + "\n")
 
     def _append_error(self, text):
-        self._append_line(_("[error]") + " " + text)
+        self._append_line(_("[erro]") + " " + text)
 
     def _set_status(self, text):
         self._status.SetLabel(text)

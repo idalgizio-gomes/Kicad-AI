@@ -36,6 +36,19 @@ except ImportError:  # pragma: no cover - import shim
         ToolSpec,
     )
 
+# i18n: every string literal below is ALREADY Portuguese (this module
+# predates the i18n infrastructure) — wrapping in _() must not change any
+# wording, only make it translatable. See chat_gui.py's `_()` docstring for
+# why this is a fresh-lookup trampoline rather than `from ..i18n import _`.
+try:  # pragma: no cover - import shim
+    from .. import i18n as _i18n
+except ImportError:  # pragma: no cover - import shim
+    import i18n as _i18n  # type: ignore[no-redef]
+
+
+def _(message: str) -> str:  # noqa: N807 - conventional gettext alias name
+    return _i18n._(message)
+
 
 @dataclass
 class ActionDefinition:
@@ -60,7 +73,9 @@ class ActionRegistry:
     def register(self, defn: ActionDefinition) -> None:
         name = defn.spec.name
         if name in self._actions:
-            raise ValueError(f"Ação duplicada: '{name}' já está registada.")
+            raise ValueError(
+                _("Ação duplicada: '{name}' já está registada.").format(name=name)
+            )
         self._actions[name] = defn
 
     def get(self, name: str) -> Optional[ActionDefinition]:
@@ -91,7 +106,9 @@ def execute_tool_call(
     if defn is None:
         return ChatMessage(
             role="tool",
-            content=f"Erro: ferramenta desconhecida '{tool_call.name}'.",
+            content=_("Erro: ferramenta desconhecida '{name}'.").format(
+                name=tool_call.name
+            ),
             tool_call_id=tool_call.id,
         )
 
@@ -104,14 +121,16 @@ def execute_tool_call(
         except Exception as exc:  # a broken approval UI must not execute the action
             return ChatMessage(
                 role="tool",
-                content=f"Ação recusada (erro no pedido de aprovação: {exc}).",
+                content=_("Ação recusada (erro no pedido de aprovação: {err}).").format(
+                    err=exc
+                ),
                 tool_call_id=tool_call.id,
             )
 
     if not approved:
         return ChatMessage(
             role="tool",
-            content="Ação recusada pelo utilizador.",
+            content=_("Ação recusada pelo utilizador."),
             tool_call_id=tool_call.id,
         )
 
@@ -120,7 +139,9 @@ def execute_tool_call(
     except Exception as exc:  # handlers must never propagate to the loop/GUI
         return ChatMessage(
             role="tool",
-            content=f"Erro ao executar {tool_call.name}: {exc}",
+            content=_("Erro ao executar {name}: {err}").format(
+                name=tool_call.name, err=exc
+            ),
             tool_call_id=tool_call.id,
         )
 
@@ -155,7 +176,14 @@ def run_tool_loop(
             except Exception:
                 pass  # progress reporting must never break the loop
 
-    for _ in range(max_rounds):
+    # NOTE: named `_round`, NOT `_` — this module imports the real gettext
+    # `_()` above, and a `for _ in range(...)` loop target would shadow it
+    # for this function's ENTIRE body (Python treats a name assigned
+    # anywhere in a function as local to the whole function, regardless of
+    # source order), turning every `_("...")` call below into a TypeError
+    # ("'int' object is not callable") the moment the loop runs once. See
+    # the i18n skill guide's dedicated section on this exact bug class.
+    for _round in range(max_rounds):
         response: ChatResponse = provider.send(messages, registry.specs())
 
         meta = {}
@@ -176,17 +204,23 @@ def run_tool_loop(
             messages.append(
                 ChatMessage(
                     role="assistant",
-                    content=f"[erro] {response.error or 'Erro desconhecido do provider.'}",
+                    content=_("[erro] {error}").format(
+                        error=response.error or _("Erro desconhecido do provider.")
+                    ),
                 )
             )
             return messages
 
         if response.stop_reason == "tool_use" and response.tool_calls:
             for tc in response.tool_calls:
-                _notify(f"[ação] {tc.name}")
+                _notify(_("[ação] {name}").format(name=tc.name))
                 tool_msg = execute_tool_call(registry, tc, approval_callback)
                 messages.append(tool_msg)
-                _notify(f"[ação] {tc.name} → {tool_msg.content}")
+                _notify(
+                    _("[ação] {name} → {result}").format(
+                        name=tc.name, result=tool_msg.content
+                    )
+                )
             # loop again so the model can react to the tool results
             continue
 
@@ -197,10 +231,10 @@ def run_tool_loop(
     messages.append(
         ChatMessage(
             role="assistant",
-            content=(
-                f"[aviso] Limite de {max_rounds} rondas de ferramentas atingido; "
+            content=_(
+                "[aviso] Limite de {max_rounds} rondas de ferramentas atingido; "
                 "a interromper o ciclo."
-            ),
+            ).format(max_rounds=max_rounds),
         )
     )
     return messages

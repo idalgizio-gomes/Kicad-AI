@@ -51,6 +51,20 @@ except ImportError:  # pragma: no cover - fallback for test import via conftest
         ToolSpec,
     )
 
+# i18n: every string literal below is ALREADY Portuguese — wrapping in _()
+# must not change any wording, only make it translatable (existing tests
+# assert on exact pt substrings). See chat_gui.py's `_()` docstring for why
+# this is a fresh-lookup trampoline rather than `from ..i18n import _`.
+try:  # pragma: no cover - import shim
+    from .. import i18n as _i18n
+except ImportError:  # pragma: no cover - import shim
+    import i18n as _i18n  # type: ignore[no-redef]
+
+
+def _(message: str) -> str:  # noqa: N807 - conventional gettext alias name
+    return _i18n._(message)
+
+
 _TIMEOUT_S = 180.0
 
 
