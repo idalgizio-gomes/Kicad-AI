@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KiCad Chat Assistant VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-20 04:00+0100\n"
+"POT-Creation-Date: 2026-07-20 16:08+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: zh\n"
@@ -20,12 +20,30 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: chat_action.py:182
+#: attachments.py:101
+msgid "Ficheiro não encontrado."
+msgstr ""
+
+#: attachments.py:113
+#, python-brace-format
+msgid "Imagem demasiado grande ({size} KB, limite {limit} KB)."
+msgstr ""
+
+#: attachments.py:130
+#, python-brace-format
+msgid "PDF demasiado grande ({size} KB, limite {limit} KB)."
+msgstr ""
+
+#: attachments.py:161 attachments.py:192
+msgid "Ficheiro binário não suportado (não é imagem, PDF, nem texto legível)."
+msgstr ""
+
+#: chat_action.py:187
 #, python-brace-format
 msgid "Erro inesperado ao criar o provider '{provider_id}': {exc}"
 msgstr ""
 
-#: chat_action.py:192
+#: chat_action.py:197
 #, python-brace-format
 msgid ""
 "{label} não tem uma API key configurada.\n"
@@ -34,86 +52,219 @@ msgid ""
 " variável de ambiente correspondente, e volte a selecionar o provider."
 msgstr ""
 
-#: chat_action.py:200
+#: chat_action.py:205
 msgid "Provedor não configurado"
 msgstr ""
 
-#: chat_gui.py:161 chat_gui.py:265
-msgid "Provedor:"
+#: chat_gui.py:111
+msgid "Escolher modelo"
 msgstr ""
 
-#: chat_gui.py:181 chat_gui.py:266
-msgid "Modelo:"
+#: chat_gui.py:131
+msgid ""
+"Não foi possível obter a lista de modelos deste fornecedor (verifique a "
+"chave API ou a ligação). Pode escrever o nome do modelo diretamente no "
+"campo 'Modelo'."
 msgstr ""
 
-#: chat_gui.py:191 chat_gui.py:269 chat_gui.py:338
-msgid "(padrão do fornecedor)"
+#: chat_gui.py:141
+msgid "Selecionar"
 msgstr ""
 
-#: chat_gui.py:199 chat_gui.py:267
-msgid "Idioma:"
+#: chat_gui.py:144
+msgid "Cancelar"
 msgstr ""
 
-#: chat_gui.py:225 chat_gui.py:268
-msgid "Enviar"
+#: chat_gui.py:167
+msgid "Conversas"
 msgstr ""
 
-#: chat_gui.py:232 chat_gui.py:285 chat_gui.py:408
-msgid "Pronto."
+#: chat_gui.py:188 chat_gui.py:412 chat_gui.py:574
+msgid "Nova conversa"
+msgstr ""
+
+#: chat_gui.py:192
+msgid "Abrir"
+msgstr ""
+
+#: chat_gui.py:197
+msgid "Eliminar"
+msgstr ""
+
+#: chat_gui.py:205 chat_gui.py:312
+msgid "Fechar"
+msgstr ""
+
+#: chat_gui.py:248
+#, python-brace-format
+msgid "Eliminar a conversa '{title}'? Esta ação não pode ser desfeita."
+msgstr ""
+
+#: chat_gui.py:251
+msgid "Eliminar conversa?"
+msgstr ""
+
+#: chat_gui.py:279 chat_gui.py:419 chat_gui.py:577
+msgid "Sobre / Suporte"
+msgstr ""
+
+#: chat_gui.py:295
+#, python-brace-format
+msgid "Criado e mantido por {author}."
 msgstr ""
 
 #: chat_gui.py:302
+msgid ""
+"Para questões, sugestões ou reportar problemas, usa o repositório no "
+"GitHub:"
+msgstr ""
+
+#: chat_gui.py:415 chat_gui.py:575
+msgid "Conversas..."
+msgstr ""
+
+#: chat_gui.py:429 chat_gui.py:569
+msgid "Provedor:"
+msgstr ""
+
+#: chat_gui.py:449 chat_gui.py:570
+msgid "Modelo:"
+msgstr ""
+
+#: chat_gui.py:459 chat_gui.py:573 chat_gui.py:677
+msgid "(padrão do fornecedor)"
+msgstr ""
+
+#: chat_gui.py:475 chat_gui.py:571
+msgid "Idioma:"
+msgstr ""
+
+#: chat_gui.py:497 chat_gui.py:589
+msgid "Modo:"
+msgstr ""
+
+#: chat_gui.py:506 chat_gui.py:594
+msgid "Anexar ficheiro..."
+msgstr ""
+
+#: chat_gui.py:525 chat_gui.py:572
+msgid "Enviar"
+msgstr ""
+
+#: chat_gui.py:533 chat_gui.py:601 chat_gui.py:810 chat_gui.py:928
+msgid "Pronto."
+msgstr ""
+
+#: chat_gui.py:537 chat_gui.py:576
+msgid "Limite..."
+msgstr ""
+
+#: chat_gui.py:619
 #, python-brace-format
 msgid "Não foi possível inicializar o fornecedor '{name}': {err}"
 msgstr ""
 
-#: chat_gui.py:323
+#: chat_gui.py:645
+#, python-brace-format
+msgid "Modo definido como: {mode}"
+msgstr ""
+
+#: chat_gui.py:662
 #, python-brace-format
 msgid "Mudou para {name}."
 msgstr ""
 
-#: chat_gui.py:337
+#: chat_gui.py:676
 #, python-brace-format
 msgid "Modelo definido como {model}."
 msgstr ""
 
-#: chat_gui.py:351
+#: chat_gui.py:689
+msgid "Nenhum fornecedor está configurado."
+msgstr ""
+
+#: chat_gui.py:716
+msgid "Anexar ficheiro(s)"
+msgstr ""
+
+#: chat_gui.py:733
+#, python-brace-format
+msgid "[Anexos pendentes: {names}]"
+msgstr ""
+
+#: chat_gui.py:746
+msgid "Define o limite de custo desta sessão em USD (vazio = sem limite/alertas):"
+msgstr ""
+
+#: chat_gui.py:749
+msgid "Limite de custo"
+msgstr ""
+
+#: chat_gui.py:766
+#, python-brace-format
+msgid "Valor de limite inválido: '{value}'."
+msgstr ""
+
+#: chat_gui.py:818 chat_gui.py:831
+msgid "[info] Nova conversa iniciada."
+msgstr ""
+
+#: chat_gui.py:837
+#, python-brace-format
+msgid "Não foi possível abrir a conversa: {err}"
+msgstr ""
+
+#: chat_gui.py:843
+msgid "[info] Conversa aberta."
+msgstr ""
+
+#: chat_gui.py:868
 msgid "Nenhum fornecedor está configurado. Verifique a sua API key / instalação."
 msgstr ""
 
-#: chat_gui.py:356
-msgid "Você:"
-msgstr ""
-
-#: chat_gui.py:360
+#: chat_gui.py:880
 msgid "A pensar..."
 msgstr ""
 
-#: chat_gui.py:395
+#: chat_gui.py:915
 msgid "Erro."
 msgstr ""
 
-#: chat_gui.py:430
+#: chat_gui.py:954
 #, python-brace-format
 msgid "Custo da sessão: ${spent} / ${limit}"
 msgstr ""
 
-#: chat_gui.py:435
+#: chat_gui.py:959
 #, python-brace-format
 msgid "Custo da sessão: ${spent}"
 msgstr ""
 
-#: chat_gui.py:453
+#: chat_gui.py:977
 #, python-brace-format, python-format
 msgid ""
 "[aviso de custo] {pct}% do limite da sessão atingido (${spent} / "
 "${limit})."
 msgstr ""
 
-#: chat_gui.py:489
+#: chat_gui.py:1020
+msgid "⚠ Aprovar ALTERAÇÃO à placa?"
+msgstr ""
+
+#: chat_gui.py:1023
+msgid ""
+"ATENÇÃO: esta ação MODIFICA a placa aberta.\n"
+"\n"
+msgstr ""
+
+#: chat_gui.py:1026
+msgid "Aprovar ação?"
+msgstr ""
+
+#: chat_gui.py:1031
 #, python-brace-format
 msgid ""
-"O assistente quer executar a ação:\n"
+"{warning}O assistente quer executar a ação:\n"
 "\n"
 "  {name}\n"
 "\n"
@@ -125,37 +276,47 @@ msgid ""
 "Permitir esta ação?"
 msgstr ""
 
-#: chat_gui.py:502
-msgid "Aprovar ação?"
+#: chat_gui.py:1074
+msgid "Você:"
 msgstr ""
 
-#: chat_gui.py:523
+#: chat_gui.py:1077
+#, python-brace-format
+msgid "[anexo] {name}"
+msgstr ""
+
+#: chat_gui.py:1081
 msgid "Assistente:"
 msgstr ""
 
-#: chat_gui.py:530
+#: chat_gui.py:1088
 msgid "[aviso] Resposta vazia do fornecedor."
 msgstr ""
 
-#: chat_gui.py:533
+#: chat_gui.py:1094
+#, python-brace-format
+msgid "[ação] ⚠ a propor ALTERAÇÃO: {name}"
+msgstr ""
+
+#: chat_gui.py:1098
 #, python-brace-format
 msgid "[ação] a propor: {name}"
 msgstr ""
 
-#: chat_gui.py:539
+#: chat_gui.py:1104
 #, python-brace-format
 msgid "[custo] esta chamada: ${amount}"
 msgstr ""
 
-#: chat_gui.py:544
+#: chat_gui.py:1109
 msgid " ...[truncado]"
 msgstr ""
 
-#: chat_gui.py:545
+#: chat_gui.py:1110
 msgid "[ação] resultado"
 msgstr ""
 
-#: chat_gui.py:551
+#: chat_gui.py:1116
 msgid "[erro]"
 msgstr ""
 
@@ -209,6 +370,58 @@ msgid ""
 "interromper o ciclo."
 msgstr ""
 
+#: actions/kicad_write_tools.py:65
+msgid "pcbnew indisponível — esta ferramenta só funciona dentro do KiCad"
+msgstr ""
+
+#: actions/kicad_write_tools.py:70
+msgid "Nenhum board KiCad está atualmente aberto"
+msgstr ""
+
+#: actions/kicad_write_tools.py:78
+#, python-brace-format
+msgid "Componente '{reference}' não encontrado na placa."
+msgstr ""
+
+#: actions/kicad_write_tools.py:97
+msgid "Falta o argumento 'reference'."
+msgstr ""
+
+#: actions/kicad_write_tools.py:111
+#, python-brace-format
+msgid "Argumentos 'x_mm'/'y_mm' inválidos: {err}"
+msgstr ""
+
+#: actions/kicad_write_tools.py:123
+#, python-brace-format
+msgid ""
+"{reference} movido de ({old_x:.3f}, {old_y:.3f}) mm para ({new_x:.3f}, "
+"{new_y:.3f}) mm. Guarde a placa (Ctrl+S) para persistir a alteração."
+msgstr ""
+
+#: actions/kicad_write_tools.py:138
+#, python-brace-format
+msgid "Argumento 'angle_deg' inválido: {err}"
+msgstr ""
+
+#: actions/kicad_write_tools.py:147
+#, python-brace-format
+msgid ""
+"{reference} rodado de {old_angle:.1f}° para {new_angle:.1f}°. Guarde a "
+"placa (Ctrl+S) para persistir a alteração."
+msgstr ""
+
+#: actions/kicad_write_tools.py:159
+msgid "Falta o argumento 'value'."
+msgstr ""
+
+#: actions/kicad_write_tools.py:167
+#, python-brace-format
+msgid ""
+"Valor de {reference} alterado de '{old_value}' para '{new_value}'. Guarde"
+" a placa (Ctrl+S) para persistir a alteração."
+msgstr ""
+
 #: llm_providers/__init__.py:70
 msgid "Claude (Anthropic - API paga)"
 msgstr ""
@@ -235,111 +448,226 @@ msgstr ""
 msgid "Pacote '{pip_name}' não instalado. Instale com: pip install {pip_name}"
 msgstr ""
 
-#: llm_providers/claude_provider.py:165
+#: llm_providers/claude_code_cli_provider.py:274
+msgid ""
+"Tens acesso às seguintes ações (ferramentas). Cada uma exige aprovação "
+"explícita do utilizador antes de ser executada — propor uma ação é "
+"seguro, só é executada se o utilizador aceitar."
+msgstr ""
+
+#: llm_providers/claude_code_cli_provider.py:280
+msgid ""
+"Para propor UMA ação, responde com um bloco de código com a etiqueta "
+"exata 'action' contendo um único objeto JSON com as chaves \"name\" e "
+"\"arguments\", por exemplo:"
+msgstr ""
+
+#: llm_providers/claude_code_cli_provider.py:286
+msgid ""
+"Usa no máximo UM bloco 'action' por resposta. Se não precisares de "
+"nenhuma ferramenta, responde normalmente em texto, sem nenhum bloco "
+"'action'."
+msgstr ""
+
+#: llm_providers/claude_code_cli_provider.py:290
+msgid "Ferramentas disponíveis:"
+msgstr ""
+
+#: llm_providers/claude_code_cli_provider.py:346
+#, python-brace-format
+msgid "[Ficheiro anexado: {name} — caminho completo: {path}]"
+msgstr ""
+
+#: llm_providers/claude_code_cli_provider.py:398
+msgid ""
+"CLI 'claude' não encontrado. Instale com: npm install -g @anthropic-ai"
+"/claude-code"
+msgstr ""
+
+#: llm_providers/claude_code_cli_provider.py:405
+msgid "Sem conteúdo para enviar ao Claude Code."
+msgstr ""
+
+#: llm_providers/claude_code_cli_provider.py:457
+#, python-brace-format
+msgid "CLI 'claude' não encontrado: {err}"
+msgstr ""
+
+#: llm_providers/claude_code_cli_provider.py:460
+#, python-brace-format
+msgid "O Claude Code CLI não respondeu em {timeout:.0f}s."
+msgstr ""
+
+#: llm_providers/claude_code_cli_provider.py:468
+#, python-brace-format
+msgid "Claude Code CLI terminou com erro (código {code})"
+msgstr ""
+
+#: llm_providers/claude_code_cli_provider.py:480
+#, python-brace-format
+msgid "Resposta inesperada do Claude Code CLI (saída não é JSON válido): {err}"
+msgstr ""
+
+#: llm_providers/claude_code_cli_provider.py:487
+msgid "Resposta inesperada do Claude Code CLI (JSON não é um objeto)."
+msgstr ""
+
+#: llm_providers/claude_code_cli_provider.py:492
+#, python-brace-format
+msgid "Claude Code CLI reportou erro: {result}"
+msgstr ""
+
+#: llm_providers/claude_code_cli_provider.py:493
+msgid "desconhecido"
+msgstr ""
+
+#: llm_providers/claude_code_cli_provider.py:499
+msgid "Claude Code CLI não devolveu texto de resposta."
+msgstr ""
+
+#: llm_providers/claude_provider.py:132 llm_providers/gemini_provider.py:166
+#: llm_providers/openai_provider.py:149
+#, python-brace-format
+msgid "--- Ficheiro anexado: {name} ---"
+msgstr ""
+
+#: llm_providers/claude_provider.py:135 llm_providers/gemini_provider.py:169
+#: llm_providers/openai_provider.py:152
+msgid "[... ficheiro truncado ...]"
+msgstr ""
+
+#: llm_providers/claude_provider.py:142 llm_providers/gemini_provider.py:173
+#: llm_providers/openai_provider.py:159
+#, python-brace-format
+msgid "[Anexo '{name}' não pôde ser incluído: {reason}]"
+msgstr ""
+
+#: llm_providers/claude_provider.py:144 llm_providers/gemini_provider.py:175
+msgid "motivo desconhecido"
+msgstr ""
+
+#: llm_providers/claude_provider.py:257
 msgid "Pedido recusado pelos filtros de segurança"
 msgstr ""
 
-#: llm_providers/claude_provider.py:206
+#: llm_providers/claude_provider.py:298
 msgid "Pacote 'anthropic' não instalado. Instale com: pip install anthropic"
 msgstr ""
 
-#: llm_providers/claude_provider.py:213
+#: llm_providers/claude_provider.py:305
 msgid ""
 "Chave de API da Anthropic em falta. Configure a API key do Claude nas "
 "definições do plugin."
 msgstr ""
 
-#: llm_providers/claude_provider.py:230
+#: llm_providers/claude_provider.py:322
 #, python-brace-format
 msgid ""
 "Autenticação falhou: a chave de API do Claude é inválida ou foi revogada."
 " ({err})"
 msgstr ""
 
-#: llm_providers/claude_provider.py:237
+#: llm_providers/claude_provider.py:329
 #, python-brace-format
 msgid ""
 "Limite de pedidos atingido na API do Claude. Aguarde um momento e tente "
 "novamente. ({err})"
 msgstr ""
 
-#: llm_providers/claude_provider.py:244
+#: llm_providers/claude_provider.py:336
 #, python-brace-format
 msgid ""
 "Não foi possível ligar à API do Claude. Verifique a sua ligação à "
 "internet. ({err})"
 msgstr ""
 
-#: llm_providers/claude_provider.py:250
+#: llm_providers/claude_provider.py:342
 #, python-brace-format
 msgid "A API do Claude devolveu um erro: {err}"
 msgstr ""
 
-#: llm_providers/gemini_provider.py:187
+#: llm_providers/gemini_provider.py:258
 msgid ""
 "Pacote 'google-generativeai' não instalado. Instale com: pip install "
 "google-generativeai"
 msgstr ""
 
-#: llm_providers/gemini_provider.py:194
+#: llm_providers/gemini_provider.py:265
 msgid ""
 "Falta a API key do Gemini. Configure-a nas definições ou na variável de "
 "ambiente GOOGLE_API_KEY / GEMINI_API_KEY."
 msgstr ""
 
-#: llm_providers/gemini_provider.py:213
+#: llm_providers/gemini_provider.py:284
 #, python-brace-format
 msgid "Erro na API Gemini: {err}"
 msgstr ""
 
-#: llm_providers/gemini_provider.py:233
+#: llm_providers/gemini_provider.py:304
 #, python-brace-format
 msgid "Pedido bloqueado pelos filtros de segurança do Gemini: {reason}"
 msgstr ""
 
-#: llm_providers/gemini_provider.py:243
+#: llm_providers/gemini_provider.py:314
 msgid "O Gemini não devolveu nenhuma resposta (candidato vazio)."
 msgstr ""
 
-#: llm_providers/gemini_provider.py:255
+#: llm_providers/gemini_provider.py:326
 #, python-brace-format
 msgid "Resposta do Gemini sem conteúdo (finish_reason={finish})."
 msgstr ""
 
-#: llm_providers/openai_provider.py:66
+#: llm_providers/openai_provider.py:86
 msgid "Pacote 'openai' não instalado. Instale com: pip install openai"
 msgstr ""
 
-#: llm_providers/openai_provider.py:70
+#: llm_providers/openai_provider.py:90
 msgid "Chave de API da OpenAI em falta. Configure a API key para usar o ChatGPT."
 msgstr ""
 
-#: llm_providers/openai_provider.py:89
+#: llm_providers/openai_provider.py:109
 #, python-brace-format
 msgid "Falha de autenticação na OpenAI — verifique a API key. ({err})"
 msgstr ""
 
-#: llm_providers/openai_provider.py:96
+#: llm_providers/openai_provider.py:116
 #, python-brace-format
 msgid "Limite de pedidos da OpenAI excedido. Tente novamente mais tarde. ({err})"
 msgstr ""
 
-#: llm_providers/openai_provider.py:101
+#: llm_providers/openai_provider.py:121
 #, python-brace-format
 msgid "Falha de ligação à OpenAI. Verifique a rede. ({err})"
 msgstr ""
 
-#: llm_providers/openai_provider.py:104
+#: llm_providers/openai_provider.py:124
 #, python-brace-format
 msgid "Erro da API OpenAI: {err}"
 msgstr ""
 
-#: llm_providers/openai_provider.py:174
+#: llm_providers/openai_provider.py:162
+msgid "PDFs não são suportados pela API de Chat Completions."
+msgstr ""
+
+#: llm_providers/openai_provider.py:239
 #, python-brace-format
 msgid "Resposta da OpenAI com argumentos de ferramenta inválidos: {err}"
 msgstr ""
 
-#: llm_providers/openai_provider.py:187
+#: llm_providers/openai_provider.py:252
 msgid "Pedido recusado pelos filtros de conteúdo da OpenAI"
 msgstr ""
+
+#~ msgid ""
+#~ "O assistente quer executar a ação:\n"
+#~ "\n"
+#~ "  {name}\n"
+#~ "\n"
+#~ "{description}\n"
+#~ "\n"
+#~ "Argumentos:\n"
+#~ "{args}\n"
+#~ "\n"
+#~ "Permitir esta ação?"
+#~ msgstr ""
 

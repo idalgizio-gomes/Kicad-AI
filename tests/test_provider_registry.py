@@ -24,11 +24,19 @@ from llm_providers import (
 def test_import_llm_providers_without_any_sdk_installed():
     """The package itself must import clean regardless of SDK availability."""
     assert "llm_providers" in sys.modules
-    assert set(PROVIDER_IDS) == {"claude", "claude_cli", "chatgpt", "gemini"}
+    assert set(PROVIDER_IDS) == {
+        "claude",
+        "claude_cli",
+        "chatgpt",
+        "gemini",
+        "gemini_cli",
+        "codex_cli",
+    }
     assert PROVIDER_LABELS["claude"] == "Claude (Anthropic - API paga)"
     assert PROVIDER_LABELS["claude_cli"] == "Claude Code (subscrição local)"
     assert PROVIDER_LABELS["chatgpt"] == "ChatGPT (OpenAI)"
     assert PROVIDER_LABELS["gemini"] == "Gemini (Google)"
+    assert PROVIDER_LABELS["gemini_cli"] == "Gemini CLI (conta Google)"
 
 
 def test_load_config_missing_file_returns_empty_dict(tmp_path, monkeypatch):
@@ -146,6 +154,12 @@ def test_create_provider_gemini_returns_gemini_provider(monkeypatch):
     monkeypatch.setenv("GOOGLE_API_KEY", "test-key")
     provider = create_provider("gemini", {})
     assert provider.id == "gemini"
+
+
+def test_create_provider_gemini_cli_returns_gemini_cli_provider():
+    provider = create_provider("gemini_cli", {})
+    assert provider.id == "gemini_cli"
+    assert provider.display_name == "Gemini CLI (conta Google)"
 
 
 def test_create_provider_missing_sdk_raises_provider_error_with_pip_hint(monkeypatch):

@@ -58,7 +58,7 @@ __all__ = [
     "create_provider",
 ]
 
-PROVIDER_IDS = ["claude", "claude_cli", "chatgpt", "gemini"]
+PROVIDER_IDS = ["claude", "claude_cli", "chatgpt", "gemini", "gemini_cli", "codex_cli"]
 
 # Built once at import time, so — like every other module-level constant
 # wrapped in _() before setup_i18n() has necessarily run yet — each value
@@ -71,13 +71,15 @@ PROVIDER_LABELS = {
     "claude_cli": _("Claude Code (subscrição local)"),
     "chatgpt": _("ChatGPT (OpenAI)"),
     "gemini": _("Gemini (Google)"),
+    "gemini_cli": _("Gemini CLI (conta Google)"),
+    "codex_cli": _("Codex CLI (subscrição ChatGPT)"),
 }
 
 # Maps provider id -> (pip package name, env var(s) to check for an API key).
 # Order matters for env vars: first one found wins.
-# claude_cli has no entry: it shells out to the `claude` CLI binary, not a
-# pip package, so it never goes through the ImportError -> "pip install"
-# path in create_provider() below.
+# claude_cli, gemini_cli and codex_cli have no entry: all three shell out to
+# an external CLI binary, not a pip package, so they never go through the
+# ImportError -> "pip install" path in create_provider() below.
 _PIP_PACKAGES = {
     "claude": "anthropic",
     "chatgpt": "openai",
@@ -181,6 +183,14 @@ def create_provider(
             from .gemini_provider import GeminiProvider
 
             return GeminiProvider(api_key=api_key, model=model)
+        if provider_id == "gemini_cli":
+            from .gemini_cli_provider import GeminiCLIProvider
+
+            return GeminiCLIProvider(api_key=api_key, model=model)
+        if provider_id == "codex_cli":
+            from .codex_cli_provider import CodexCLIProvider
+
+            return CodexCLIProvider(api_key=api_key, model=model)
     except ImportError as exc:
         pip_name = _PIP_PACKAGES.get(provider_id, provider_id)
         raise ProviderError(

@@ -98,6 +98,21 @@ def _make_message(role, content, tool_calls=None, tool_call_id=None, attachments
     )
 
 
+class _ChatFileDropTarget(wx.FileDropTarget):
+    """Lets the user drag-and-drop files straight onto the chat window
+    instead of only through the "Anexar ficheiro..." picker — same staging
+    path (``ChatDialog._stage_attachment_paths``), any file type, ANY
+    number of files dropped at once."""
+
+    def __init__(self, dialog):
+        super().__init__()
+        self._dialog = dialog
+
+    def OnDropFiles(self, x, y, filenames):
+        self._dialog._stage_attachment_paths(filenames)
+        return True
+
+
 class ModelPickerDialog(wx.Dialog):
     """Real model selection window (not free text) — populated from
     ``provider.list_models()``. Opens even when that list is empty (missing
@@ -353,8 +368,11 @@ class ChatDialog(wx.Dialog):
             # "KiCad Chat Assistant" is the product name — deliberately not
             # wrapped in _(), a proper noun is not translated.
             title="KiCad Chat Assistant",
-            size=(760, 560),
-            style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER,
+            size=(900, 640),
+            style=wx.DEFAULT_DIALOG_STYLE
+            | wx.RESIZE_BORDER
+            | wx.MAXIMIZE_BOX
+            | wx.MINIMIZE_BOX,
         )
 
         self._provider_factory = provider_factory
@@ -424,15 +442,15 @@ class ChatDialog(wx.Dialog):
         self._about_btn = about_btn
         outer.Add(conv_row, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 8)
 
-        # Top row: provider chooser, model override, language picker.
-        top = wx.BoxSizer(wx.HORIZONTAL)
+        # Row 2: provider chooser + language picker. Split from the
+        # model/tools controls (previously all crammed into 1-2 rows) into
+        # its own row so nothing gets squeezed/overlapped at the dialog's
+        # default width — see the matching split below and the wider
+        # default size in __init__ (user-reported: "parte do conteúdo da
+        # janela está sobreposta").
+        provider_row = wx.BoxSizer(wx.HORIZONTAL)
         self._provider_label = wx.StaticText(panel, label=_("Provedor:"))
-        top.Add(
-            self._provider_label,
-            0,
-            wx.ALIGN_CENTER_VERTICAL | wx.RIGHT,
-            6,
-        )
+        provider_row.Add(self._provider_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
         self._provider_choice = wx.Choice(
             panel,
             choices=[_(self._provider_labels.get(pid, pid)) for pid in self._provider_ids],
@@ -440,40 +458,14 @@ class ChatDialog(wx.Dialog):
         if self._provider_ids:
             self._provider_choice.SetSelection(0)
         self._provider_choice.Bind(wx.EVT_CHOICE, self._on_provider_change)
-        top.Add(self._provider_choice, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 12)
-
-        # Model override — generic across every provider (each one already
-        # reads its own self.model). Empty means "provider's own default".
-        # Applied on Enter so a typo doesn't recreate the provider on every
-        # keystroke.
-        self._model_label = wx.StaticText(panel, label=_("Modelo:"))
-        top.Add(
-            self._model_label,
-            0,
-            wx.ALIGN_CENTER_VERTICAL | wx.RIGHT,
-            6,
-        )
-        self._model_input = wx.TextCtrl(
-            panel, style=wx.TE_PROCESS_ENTER, size=(160, -1)
-        )
-        self._model_input.SetHint(_("(padrão do fornecedor)"))
-        self._model_input.Bind(wx.EVT_TEXT_ENTER, self._on_model_change)
-        top.Add(self._model_input, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 4)
-
-        # Opens a real selection window listing this provider's actual
-        # models (list_models()) instead of relying on free text alone —
-        # the free-text field above stays available for power users /
-        # providers where no live list is available.
-        self._model_picker_btn = wx.Button(panel, label="...", size=(28, -1))
-        self._model_picker_btn.Bind(wx.EVT_BUTTON, self._on_open_model_picker)
-        top.Add(self._model_picker_btn, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 12)
+        provider_row.Add(self._provider_choice, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 24)
 
         # Language picker — see _on_language_change / _retranslate_static_labels
         # for the "re-render live" pattern (static wx widgets never
         # auto-update; each needs an explicit .SetLabel()/.SetHint() call
         # after switching).
         self._lang_label = wx.StaticText(panel, label=_("Idioma:"))
-        top.Add(self._lang_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
+        provider_row.Add(self._lang_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
         self._lang_choice = wx.Choice(
             panel,
             choices=[_LANGUAGE_NAMES.get(code, code) for code in SUPPORTED_LANGUAGES],
@@ -483,32 +475,59 @@ class ChatDialog(wx.Dialog):
         except ValueError:
             self._lang_choice.SetSelection(0)
         self._lang_choice.Bind(wx.EVT_CHOICE, self._on_language_change)
-        top.Add(self._lang_choice, 0, wx.ALIGN_CENTER_VERTICAL)
-        outer.Add(top, 0, wx.EXPAND | wx.ALL, 8)
+        provider_row.Add(self._lang_choice, 0, wx.ALIGN_CENTER_VERTICAL)
+        outer.Add(provider_row, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 8)
 
-        # Second row: permission mode (Claude Code CLI provider only — file
+        # Row 3: model override + picker button. Generic across every
+        # provider (each one already reads its own self.model). Empty means
+        # "provider's own default". Applied on Enter so a typo doesn't
+        # recreate the provider on every keystroke.
+        model_row = wx.BoxSizer(wx.HORIZONTAL)
+        self._model_label = wx.StaticText(panel, label=_("Modelo:"))
+        model_row.Add(self._model_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
+        self._model_input = wx.TextCtrl(
+            panel, style=wx.TE_PROCESS_ENTER, size=(220, -1)
+        )
+        self._model_input.SetHint(_("(padrão do fornecedor)"))
+        self._model_input.Bind(wx.EVT_TEXT_ENTER, self._on_model_change)
+        model_row.Add(self._model_input, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 4)
+
+        # Opens a real selection window listing this provider's actual
+        # models (list_models()) instead of relying on free text alone —
+        # the free-text field above stays available for power users /
+        # providers where no live list is available.
+        self._model_picker_btn = wx.Button(panel, label="...", size=(28, -1))
+        self._model_picker_btn.Bind(wx.EVT_BUTTON, self._on_open_model_picker)
+        model_row.Add(self._model_picker_btn, 0, wx.ALIGN_CENTER_VERTICAL)
+        outer.Add(model_row, 0, wx.EXPAND | wx.ALL, 8)
+
+        # Row 4: permission mode (Claude Code CLI provider only — file
         # read/write/navigate access, see claude_code_cli_provider.py's
-        # PERMISSION_MODE_* constants for exactly what each does) and
-        # attaching a file to the next message sent (any type — see
-        # attachments.py). Disabled/hidden entirely for providers that
-        # don't have a `permission_mode` attribute (everything except
-        # claude_cli) — never shown as a no-op control for those.
-        tools_row = wx.BoxSizer(wx.HORIZONTAL)
+        # PERMISSION_MODE_* constants for exactly what each does). Disabled/
+        # hidden entirely for providers that don't have a `permission_mode`
+        # attribute (everything except claude_cli) — never shown as a no-op
+        # control for those. Its own row (not shared with Anexar below) so
+        # hiding it never shifts an unrelated control sideways.
+        mode_row = wx.BoxSizer(wx.HORIZONTAL)
         self._perm_mode_label = wx.StaticText(panel, label=_("Modo:"))
-        tools_row.Add(self._perm_mode_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
+        mode_row.Add(self._perm_mode_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
         self._perm_mode_choice = wx.Choice(
             panel, choices=[_(label) for label, _value in self._PERMISSION_MODE_OPTIONS]
         )
         self._perm_mode_choice.SetSelection(0)
         self._perm_mode_choice.Bind(wx.EVT_CHOICE, self._on_permission_mode_change)
-        tools_row.Add(self._perm_mode_choice, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 12)
+        mode_row.Add(self._perm_mode_choice, 0, wx.ALIGN_CENTER_VERTICAL)
+        outer.Add(mode_row, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
 
+        # Row 5: attaching a file to the next message sent (any type — see
+        # attachments.py).
+        attach_row = wx.BoxSizer(wx.HORIZONTAL)
         self._attach_btn = wx.Button(panel, label=_("Anexar ficheiro..."))
         self._attach_btn.Bind(wx.EVT_BUTTON, self._on_attach_file)
-        tools_row.Add(self._attach_btn, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
+        attach_row.Add(self._attach_btn, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
         self._attachment_label = wx.StaticText(panel, label="")
-        tools_row.Add(self._attachment_label, 0, wx.ALIGN_CENTER_VERTICAL)
-        outer.Add(tools_row, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
+        attach_row.Add(self._attachment_label, 0, wx.ALIGN_CENTER_VERTICAL)
+        outer.Add(attach_row, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
 
         # History (read-only, rich so we can visually distinguish speakers).
         self._history = wx.TextCtrl(
@@ -517,9 +536,17 @@ class ChatDialog(wx.Dialog):
         )
         outer.Add(self._history, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 8)
 
+        # Drag-and-drop: dropping file(s) anywhere on the history pane or the
+        # input box stages them exactly like "Anexar ficheiro..." (any file
+        # type — see attachments.py). wx allows only one drop target per
+        # window, so it's set on both individually rather than the whole
+        # panel (which would swallow drops meant for child controls).
+        self._history.SetDropTarget(_ChatFileDropTarget(self))
+
         # Input row: text entry + send button.
         bottom = wx.BoxSizer(wx.HORIZONTAL)
         self._input = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER)
+        self._input.SetDropTarget(_ChatFileDropTarget(self))
         self._input.Bind(wx.EVT_TEXT_ENTER, self._on_send)
         bottom.Add(self._input, 1, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
         self._send_btn = wx.Button(panel, label=_("Enviar"))
@@ -706,23 +733,30 @@ class ChatDialog(wx.Dialog):
         deliberately — "qualquer tipo de ficheiro" means no type is excluded
         at the picker level; classification (and graceful degradation for
         genuinely unsupported binaries) happens per-provider at send time."""
-        try:
-            from .llm_providers.base import Attachment  # type: ignore
-        except ImportError:  # pragma: no cover - fallback for test/standalone use
-            from llm_providers.base import Attachment  # type: ignore
-
         dlg = wx.FileDialog(
             self,
             message=_("Anexar ficheiro(s)"),
             style=wx.FD_OPEN | wx.FD_MULTIPLE | wx.FD_FILE_MUST_EXIST,
         )
         if dlg.ShowModal() == wx.ID_OK:
-            for path in dlg.GetPaths():
-                self._pending_attachments.append(
-                    Attachment(path=path, name=path.rsplit("\\", 1)[-1].rsplit("/", 1)[-1])
-                )
-            self._update_attachment_label()
+            self._stage_attachment_paths(dlg.GetPaths())
         dlg.Destroy()
+
+    def _stage_attachment_paths(self, paths):
+        """Shared staging path for both the "Anexar ficheiro..." picker and
+        drag-and-drop (_ChatFileDropTarget) — any number of paths, any file
+        type, appended to the same pending-attachments list sent with the
+        NEXT message."""
+        try:
+            from .llm_providers.base import Attachment  # type: ignore
+        except ImportError:  # pragma: no cover - fallback for test/standalone use
+            from llm_providers.base import Attachment  # type: ignore
+
+        for path in paths:
+            self._pending_attachments.append(
+                Attachment(path=path, name=path.rsplit("\\", 1)[-1].rsplit("/", 1)[-1])
+            )
+        self._update_attachment_label()
 
     def _update_attachment_label(self):
         if not self._pending_attachments:
@@ -1097,12 +1131,11 @@ class ChatDialog(wx.Dialog):
                     self._append_line(
                         _("[ação] a propor: {name}").format(name=tc.name)
                     )
-            meta = getattr(msg, "meta", None) or {}
-            cost_usd = meta.get("cost_usd")
-            if isinstance(cost_usd, (int, float)):
-                self._append_line(
-                    _("[custo] esta chamada: ${amount}").format(amount=f"{cost_usd:.4f}")
-                )
+            # Per-call cost is intentionally NOT echoed into the history —
+            # it's already shown live in the status bar's running total
+            # (self._cost_label, see _update_cost_label). Repeating it after
+            # every single assistant turn was pure noise once that label
+            # existed (user-reported: "não é preciso aparecer sempre").
         elif role == "tool":
             preview = content.strip()
             if len(preview) > _TOOL_RESULT_PREVIEW:

@@ -68,6 +68,27 @@ try:  # pragma: no cover - import shim
 except ImportError:  # pragma: no cover - import shim
     from actions.kicad_write_tools import register_kicad_write_tools  # type: ignore[no-redef]
 
+# Cross-plugin tools (EMC-EMI Analyzer, LibForge, KiKit): each register_*
+# function is safe to call even when the sibling plugin/tool isn't installed
+# on this machine — the handler itself reports that honestly at CALL time
+# (see _sibling_plugin.py's SiblingPluginNotFoundError), never at import or
+# registration time, so chat startup never fails just because e.g. LibForge
+# isn't installed alongside this plugin.
+try:  # pragma: no cover - import shim
+    from .actions.emc_emi_tools import register_emc_emi_tools
+except ImportError:  # pragma: no cover - import shim
+    from actions.emc_emi_tools import register_emc_emi_tools  # type: ignore[no-redef]
+
+try:  # pragma: no cover - import shim
+    from .actions.libforge_tools import register_libforge_tools
+except ImportError:  # pragma: no cover - import shim
+    from actions.libforge_tools import register_libforge_tools  # type: ignore[no-redef]
+
+try:  # pragma: no cover - import shim
+    from .actions.kikit_tools import register_kikit_tools
+except ImportError:  # pragma: no cover - import shim
+    from actions.kikit_tools import register_kikit_tools  # type: ignore[no-redef]
+
 # --- chat GUI --------------------------------------------------------------
 try:  # pragma: no cover - import shim
     from .chat_gui import ChatDialog
@@ -216,14 +237,21 @@ def _build_system_prompt() -> str:
         "the KiCad PCB design tool.",
         "You can propose actions via tools; every tool call requires "
         "explicit user approval before execution — nothing runs silently.",
-        "Most tools are read-only (project info, component list, DRC/ERC). "
-        "A few tools modify the board directly (move/rotate a footprint, "
-        "change a footprint's value) — use those ONLY when the user clearly "
-        "asked for that specific change, never speculatively, and always "
-        "state exactly what you are about to change before calling the tool.",
+        "Most tools are read-only (project info, component list, DRC/ERC, "
+        "EMC/EMI coupling analysis, library duplicate scanning). A few tools "
+        "modify the board or write new files (move/rotate a footprint, "
+        "change a footprint's value, generate a symbol/footprint, panelize "
+        "a board) — use those ONLY when the user clearly asked for that "
+        "specific change, never speculatively, and always state exactly "
+        "what you are about to do before calling the tool.",
+        "Some tools depend on sibling plugins or external tools (EMC-EMI "
+        "Analyzer, LibForge, KiKit, FastHenry2/FastCap2) that may not be "
+        "installed on this user's machine — if a tool call reports one is "
+        "missing, relay that honestly instead of pretending it worked.",
         "There is no way to add, delete, or rewire components/tracks/nets "
-        "yet, and no schematic-editing tool exists — say so plainly if asked "
-        "for something outside this scope instead of attempting a workaround.",
+        "on the board yet, and no schematic-editing tool exists — say so "
+        "plainly if asked for something outside this scope instead of "
+        "attempting a workaround.",
         "Be concise and technical. When you don't have enough information, "
         "call the appropriate tool instead of guessing.",
     ]
@@ -292,6 +320,9 @@ def run_chat(parent=None) -> None:
         registry = ActionRegistry()
         register_kicad_tools(registry)
         register_kicad_write_tools(registry)
+        register_emc_emi_tools(registry)
+        register_libforge_tools(registry)
+        register_kikit_tools(registry)
 
         system_prompt = _build_system_prompt()
         cost_alert_limit_usd = _resolve_cost_alert_limit(load_config())
