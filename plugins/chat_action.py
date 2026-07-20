@@ -168,6 +168,21 @@ def _init_wx_locale(lang: str) -> None:
         _wx_locale = None
 
 
+# provider_id -> (CLI binary name, install command) for every CLI-based
+# provider (never an API-key one) — used by provider_factory() below to
+# show an ACCURATE "not configured" message instead of the API-key one,
+# which was a real, reported bug when the CLI providers were added: a user
+# selecting Gemini CLI was told to set "providers.gemini_cli.api_key" in
+# config.json, which does nothing for a provider that never reads one.
+# Every install command here is a real, verified npm package name (never
+# guessed) — see each provider module's own docstring for the same command.
+_CLI_INSTALL_HINTS: dict[str, tuple[str, str]] = {
+    "claude_cli": ("claude", "npm install -g @anthropic-ai/claude-code"),
+    "codex_cli": ("codex", "npm install -g @openai/codex"),
+    "gemini_cli": ("gemini", "npm install -g @google/gemini-cli"),
+}
+
+
 def _show_error(message: str, title: str = "KiCad Chat Assistant") -> None:
     """Show an error dialog without ever raising — safe to call from any
     context, including one where a wx.App may not yet exist."""
@@ -213,6 +228,30 @@ def provider_factory(provider_id: str, model: str | None = None):
 
     if not provider.is_configured():
         label = _(PROVIDER_LABELS.get(provider_id, provider_id))
+        cli_hint = _CLI_INSTALL_HINTS.get(provider_id)
+        if cli_hint is not None:
+            # CLI-based providers (claude_cli/codex_cli/gemini_cli) are
+            # "not configured" when the CLI BINARY isn't found on PATH —
+            # nothing to do with an API key at all. Showing the API-key
+            # message here (as an earlier version did, unconditionally) was
+            # a real, reported bug: a user pointed at "config.json ->
+            # providers.gemini_cli.api_key" has no way to act on that
+            # advice, since this provider never reads an API key.
+            _show_error(
+                _(
+                    "{label} não encontrou o comando '{cli}' no PATH.\n\n"
+                    "Instale com: {install}\n"
+                    "Depois, autentique-se com a sua conta correndo '{cli}' "
+                    "num terminal (ou '{cli} login', se existir esse comando) "
+                    "e volte a selecionar o provider."
+                ).format(
+                    label=label,
+                    cli=cli_hint[0],
+                    install=cli_hint[1],
+                ),
+                title=_("Provedor não configurado"),
+            )
+            return provider
         _show_error(
             _(
                 "{label} não tem uma API key configurada.\n\n"

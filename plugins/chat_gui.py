@@ -24,6 +24,7 @@ FRESH on every call — see its docstring for why a plain
 from __future__ import annotations
 
 import json
+import sys
 import threading
 
 import wx
@@ -339,18 +340,35 @@ class ChatDialog(wx.Dialog):
     # _check_cost_alerts, not repeated on every subsequent turn.
     _COST_ALERT_THRESHOLDS = (0.5, 0.8, 1.0)
 
-    # (raw pt-source label, real CLI permission-mode value) — labels are
+    # raw CLI permission-mode value -> raw pt-source label. Labels are
     # wrapped in _() only at the point of use (class-attribute evaluation
     # happens at import time, before setup_i18n() has necessarily run —
     # same reasoning as PROVIDER_LABELS in llm_providers/__init__.py).
-    # Values match claude_code_cli_provider.py's PERMISSION_MODE_* constants
-    # exactly (not imported directly — chat_gui.py stays decoupled from any
-    # specific provider module, see _apply_permission_mode_to_provider).
-    _PERMISSION_MODE_OPTIONS = [
-        ("Manual (nunca aprova sozinho)", "manual"),
-        ("Planeamento (descreve, não executa)", "plan"),
-        ("Automático (edita ficheiros sem perguntar)", "acceptEdits"),
-    ]
+    #
+    # DIFFERENT CLI providers have DIFFERENT real permission-mode value sets
+    # (claude_code_cli_provider.py: "manual"/"plan"/"acceptEdits";
+    # codex_cli_provider.py: "read-only"/"workspace-write"/
+    # "danger-full-access") — this dict is the UNION of every value any
+    # provider might expose, keyed by that exact value, so the SAME lookup
+    # works for whichever provider is active. The dropdown's actual option
+    # list is built dynamically per-provider from
+    # ``type(self._provider).PERMISSION_MODES`` (see
+    # _apply_permission_mode_to_provider) — never hardcoded to one
+    # provider's values, so switching to a provider with a different mode
+    # set can never silently apply another provider's value to it (a real
+    # bug this fixed: an earlier version always offered Claude's 3 values
+    # regardless of which provider was active, so picking one while Codex
+    # CLI was selected would have set codex_provider.permission_mode to an
+    # invalid "acceptEdits"/"manual"/"plan" instead of one of its own real
+    # --sandbox choices).
+    _PERMISSION_MODE_LABELS = {
+        "manual": "Manual (nunca aprova sozinho)",
+        "plan": "Planeamento (descreve, não executa)",
+        "acceptEdits": "Automático (edita ficheiros sem perguntar)",
+        "read-only": "Só leitura (nunca escreve ficheiros)",
+        "workspace-write": "Escrita no workspace (edita ficheiros do projeto)",
+        "danger-full-access": "Acesso total (sem restrições — use com cuidado)",
+    }
 
     def __init__(
         self,
@@ -422,7 +440,17 @@ class ChatDialog(wx.Dialog):
 
     # ------------------------------------------------------------------ UI ---
     def _build_ui(self):
+        # Kept as self._panel: this dialog (self) has NO sizer of its own —
+        # only `panel` does (panel.SetSizer(outer) at the end of this
+        # method). `self.Layout()` on a sizerless window is a documented
+        # wx no-op, so every later re-layout (e.g. after a show/hide
+        # toggle) has to go through self._panel.Layout(), never
+        # self.Layout() — confirmed via a real wx probe that switching
+        # providers with a different permission-mode set produced a real,
+        # visible overlap because the old self.Layout() calls silently did
+        # nothing after construction.
         panel = wx.Panel(self)
+        self._panel = panel
         outer = wx.BoxSizer(wx.VERTICAL)
 
         # Conversations row: new / open-or-manage saved conversations.
@@ -501,23 +529,35 @@ class ChatDialog(wx.Dialog):
         model_row.Add(self._model_picker_btn, 0, wx.ALIGN_CENTER_VERTICAL)
         outer.Add(model_row, 0, wx.EXPAND | wx.ALL, 8)
 
-        # Row 4: permission mode (Claude Code CLI provider only — file
-        # read/write/navigate access, see claude_code_cli_provider.py's
-        # PERMISSION_MODE_* constants for exactly what each does). Disabled/
-        # hidden entirely for providers that don't have a `permission_mode`
-        # attribute (everything except claude_cli) — never shown as a no-op
-        # control for those. Its own row (not shared with Anexar below) so
-        # hiding it never shifts an unrelated control sideways.
-        mode_row = wx.BoxSizer(wx.HORIZONTAL)
+        # Row 4: permission mode (CLI-based providers only — e.g. file
+        # read/write/navigate access for Claude Code CLI, --sandbox for
+        # Codex CLI; see each provider module's PERMISSION_MODE_* constants
+        # for exactly what each value does). Disabled/hidden entirely for
+        # providers that don't expose a `PERMISSION_MODES` class attribute
+        # (API-key providers, Gemini CLI) — never shown as a no-op control
+        # for those. The actual option list is rebuilt per-provider by
+        # _apply_permission_mode_to_provider — never hardcoded to one
+        # provider's values (see _PERMISSION_MODE_LABELS' docstring above
+        # for why). Its own row (not shared with Anexar below), hidden via
+        # sizer-level ShowItems (self._mode_row_item), never a plain
+        # widget.Show(), so hiding it correctly reclaims its layout space
+        # instead of leaving a stale reservation that could overlap the row
+        # below on the next repaint — the real cause of a reported overlap
+        # that only showed up when switching TO a CLI provider.
+        self._mode_row = wx.BoxSizer(wx.HORIZONTAL)
         self._perm_mode_label = wx.StaticText(panel, label=_("Modo:"))
-        mode_row.Add(self._perm_mode_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
-        self._perm_mode_choice = wx.Choice(
-            panel, choices=[_(label) for label, _value in self._PERMISSION_MODE_OPTIONS]
-        )
-        self._perm_mode_choice.SetSelection(0)
+        self._mode_row.Add(self._perm_mode_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
+        self._perm_mode_choice = wx.Choice(panel, choices=[])
+        self._current_permission_modes: list[str] = []
         self._perm_mode_choice.Bind(wx.EVT_CHOICE, self._on_permission_mode_change)
-        mode_row.Add(self._perm_mode_choice, 0, wx.ALIGN_CENTER_VERTICAL)
-        outer.Add(mode_row, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
+        self._mode_row.Add(self._perm_mode_choice, 0, wx.ALIGN_CENTER_VERTICAL)
+        # wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM on the OUTER sizer item, kept
+        # as its own reference (self._mode_row_item) so it can be hidden
+        # (ShowItems(False) below) without losing the outer sizer's own
+        # border/expand flags.
+        self._mode_row_item = outer.Add(
+            self._mode_row, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 8
+        )
 
         # Row 5: attaching a file to the next message sent (any type — see
         # attachments.py).
@@ -615,7 +655,12 @@ class ChatDialog(wx.Dialog):
 
         self._perm_mode_label.SetLabel(_("Modo:"))
         perm_selection = self._perm_mode_choice.GetSelection()
-        self._perm_mode_choice.Set([_(label) for label, _value in self._PERMISSION_MODE_OPTIONS])
+        self._perm_mode_choice.Set(
+            [
+                _(self._PERMISSION_MODE_LABELS.get(m, m))
+                for m in self._current_permission_modes
+            ]
+        )
         if perm_selection != wx.NOT_FOUND:
             self._perm_mode_choice.SetSelection(perm_selection)
         self._attach_btn.SetLabel(_("Anexar ficheiro..."))
@@ -628,7 +673,7 @@ class ChatDialog(wx.Dialog):
             self._set_status(_("Pronto."))
         self._update_cost_label()
 
-        self.Layout()
+        self._panel.Layout()
 
     # -------------------------------------------------------- provider mgmt ---
     def _create_provider(self, provider_id, model=None):
@@ -650,25 +695,66 @@ class ChatDialog(wx.Dialog):
             )
 
     def _apply_permission_mode_to_provider(self):
-        """Sets self._provider.permission_mode from the "Modo:" selector,
-        and shows/hides that whole row — it only means anything for
-        providers that HAVE this attribute (currently just the Claude Code
-        CLI provider); shown as a no-op control for any other provider
-        would just be confusing."""
-        has_permission_mode = hasattr(self._provider, "permission_mode")
-        for widget in (self._perm_mode_label, self._perm_mode_choice):
-            widget.Show(has_permission_mode)
+        """Rebuilds the "Modo:" dropdown from the ACTIVE provider's own
+        ``PERMISSION_MODES`` class attribute (not every provider has one —
+        e.g. API-key providers and Gemini CLI don't), shows/hides the whole
+        row accordingly, and syncs self._provider.permission_mode from
+        whatever ends up selected.
+
+        Each CLI provider defines its OWN real permission-mode value set
+        (claude_code_cli_provider.py: "manual"/"plan"/"acceptEdits";
+        codex_cli_provider.py: "read-only"/"workspace-write"/
+        "danger-full-access") — rebuilding from the ACTIVE provider's own
+        list (instead of one hardcoded set) is what prevents ever assigning
+        one provider's value to a different provider's field. See
+        _PERMISSION_MODE_LABELS' docstring for the bug this replaced.
+
+        Uses sizer-level ShowItems()/SizerItem.Show() rather than a plain
+        widget.Show() — the latter hides the widgets visually but leaves the
+        OUTER sizer still reserving their old layout space, which is what
+        caused a reported overlap that only appeared when switching TO a
+        CLI provider (the row "reappearing" without the outer sizer having
+        properly reclaimed/re-granted its space first).
+        """
+        # PERMISSION_MODES is a MODULE-level constant in each CLI provider
+        # file (claude_code_cli_provider.py, codex_cli_provider.py) — NOT a
+        # class attribute — so it has to be looked up via the provider's
+        # own module, not via getattr() on the class/instance (that always
+        # returned [] and silently kept the whole row hidden for every
+        # provider, a real bug caught by a wx probe that actually switched
+        # providers and asserted on the row's visibility instead of just
+        # checking it didn't crash).
+        provider_module = sys.modules.get(type(self._provider).__module__)
+        modes = list(getattr(provider_module, "PERMISSION_MODES", []) or [])
+        has_permission_mode = bool(modes)
+
+        self._mode_row.ShowItems(has_permission_mode)
+        self._mode_row_item.Show(has_permission_mode)
+
         if has_permission_mode:
-            idx = self._perm_mode_choice.GetSelection()
-            if idx != wx.NOT_FOUND and idx < len(self._PERMISSION_MODE_OPTIONS):
-                self._provider.permission_mode = self._PERMISSION_MODE_OPTIONS[idx][1]
-        self.Layout()
+            self._current_permission_modes = modes
+            self._perm_mode_choice.Set(
+                [_(self._PERMISSION_MODE_LABELS.get(m, m)) for m in modes]
+            )
+            current = getattr(self._provider, "permission_mode", modes[0])
+            try:
+                idx = modes.index(current)
+            except ValueError:
+                idx = 0
+            self._perm_mode_choice.SetSelection(idx)
+            self._provider.permission_mode = modes[idx]
+        else:
+            self._current_permission_modes = []
+
+        self._panel.Layout()
 
     def _on_permission_mode_change(self, _event):
-        self._apply_permission_mode_to_provider()
         idx = self._perm_mode_choice.GetSelection()
-        if idx != wx.NOT_FOUND and idx < len(self._PERMISSION_MODE_OPTIONS):
-            label = _(self._PERMISSION_MODE_OPTIONS[idx][0])
+        if idx != wx.NOT_FOUND and idx < len(self._current_permission_modes):
+            mode = self._current_permission_modes[idx]
+            if hasattr(self._provider, "permission_mode"):
+                self._provider.permission_mode = mode
+            label = _(self._PERMISSION_MODE_LABELS.get(mode, mode))
             self._set_status(_("Modo definido como: {mode}").format(mode=label))
 
     def _on_provider_change(self, _event):
@@ -766,7 +852,7 @@ class ChatDialog(wx.Dialog):
         self._attachment_label.SetLabel(
             _("[Anexos pendentes: {names}]").format(names=names)
         )
-        self.Layout()
+        self._panel.Layout()
 
     # ------------------------------------------------------------ cost limit ---
     def _on_set_cost_limit(self, _event):
