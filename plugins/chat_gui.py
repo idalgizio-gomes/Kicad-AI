@@ -27,6 +27,7 @@ import json
 import threading
 
 import wx
+import wx.adv
 
 try:  # pragma: no cover - import shim
     from . import i18n as _i18n
@@ -259,6 +260,60 @@ class ConversationPickerDialog(wx.Dialog):
         confirm.Destroy()
 
 
+# Repo URL and author credit, shown in the "Sobre / Suporte" dialog — kept
+# as module-level constants (not hardcoded inline in the dialog class) so
+# they're easy to find/update in one place if the repo ever moves.
+_SUPPORT_REPO_URL = "https://github.com/idalgizio-gomes/Kicad-AI"
+_SUPPORT_AUTHOR = "Idalgízio Gomes"
+
+
+class AboutDialog(wx.Dialog):
+    """"Sobre / Suporte" — credits the author and points to the GitHub repo
+    for bug reports / support, so the plugin is never anonymous to someone
+    who runs into a problem with it."""
+
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            title=_("Sobre / Suporte"),
+            size=(420, 260),
+            style=wx.DEFAULT_DIALOG_STYLE,
+        )
+
+        outer = wx.BoxSizer(wx.VERTICAL)
+
+        title_text = wx.StaticText(self, label="KiCad Chat Assistant")
+        font = title_text.GetFont()
+        font.MakeBold()
+        font.SetPointSize(font.GetPointSize() + 2)
+        title_text.SetFont(font)
+        outer.Add(title_text, 0, wx.ALL, 12)
+
+        author_text = wx.StaticText(
+            self,
+            label=_("Criado e mantido por {author}.").format(author=_SUPPORT_AUTHOR),
+        )
+        outer.Add(author_text, 0, wx.LEFT | wx.RIGHT, 12)
+
+        support_text = wx.StaticText(
+            self,
+            label=_(
+                "Para questões, sugestões ou reportar problemas, "
+                "usa o repositório no GitHub:"
+            ),
+        )
+        support_text.Wrap(380)
+        outer.Add(support_text, 0, wx.ALL, 12)
+
+        link = wx.adv.HyperlinkCtrl(self, wx.ID_ANY, _SUPPORT_REPO_URL, _SUPPORT_REPO_URL)
+        outer.Add(link, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 12)
+
+        close_btn = wx.Button(self, wx.ID_OK, label=_("Fechar"))
+        outer.Add(close_btn, 0, wx.ALIGN_RIGHT | wx.ALL, 12)
+
+        self.SetSizer(outer)
+
+
 class ChatDialog(wx.Dialog):
     """Non-blocking chat dialog. All LLM/tool work runs on a worker thread and
     every UI mutation is marshalled back to the main thread via wx.CallAfter."""
@@ -341,8 +396,13 @@ class ChatDialog(wx.Dialog):
         conversations_btn = wx.Button(panel, label=_("Conversas..."))
         conversations_btn.Bind(wx.EVT_BUTTON, self._on_open_conversations)
         conv_row.Add(conversations_btn, 0)
+        conv_row.AddStretchSpacer(1)
+        about_btn = wx.Button(panel, label=_("Sobre / Suporte"))
+        about_btn.Bind(wx.EVT_BUTTON, self._on_show_about)
+        conv_row.Add(about_btn, 0)
         self._new_conv_btn = new_conv_btn
         self._conversations_btn = conversations_btn
+        self._about_btn = about_btn
         outer.Add(conv_row, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 8)
 
         # Top row: provider chooser, model override, language picker.
@@ -471,6 +531,7 @@ class ChatDialog(wx.Dialog):
         self._new_conv_btn.SetLabel(_("Nova conversa"))
         self._conversations_btn.SetLabel(_("Conversas..."))
         self._cost_limit_btn.SetLabel(_("Limite..."))
+        self._about_btn.SetLabel(_("Sobre / Suporte"))
 
         # Provider choice list: rebuild from the raw pt-source labels so
         # each entry re-translates instead of staying frozen at whatever
@@ -673,6 +734,11 @@ class ChatDialog(wx.Dialog):
     def _on_close(self, event):
         self._save_current_conversation()
         event.Skip()  # let the normal close behaviour (Destroy) proceed
+
+    def _on_show_about(self, _event):
+        dlg = AboutDialog(self)
+        dlg.ShowModal()
+        dlg.Destroy()
 
     # --------------------------------------------------------------- events ---
     def _on_send(self, _event):
