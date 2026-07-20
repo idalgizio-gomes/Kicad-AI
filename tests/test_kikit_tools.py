@@ -434,4 +434,5 @@ def test_register_kikit_tools_coexists_with_other_registries():
 
     names = {spec.name for spec in registry.specs()}
     assert "panelize_board" in names
-    assert len(names) == 4 + 3 + 1
+    # 5 (kicad_tools) + 10 (kicad_write_tools) + 1 (kikit_tools), all unique
+    assert len(names) == 5 + 10 + 1

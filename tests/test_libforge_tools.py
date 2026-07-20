@@ -526,5 +526,5 @@ def test_register_libforge_tools_coexists_with_other_registries(lft):
     assert "scan_library_folder_for_duplicates" in names
     assert "generate_component_symbol" in names
     assert "generate_component_footprint" in names
-    # 4 (kicad_tools) + 3 (kicad_write_tools) + 3 (libforge_tools), all unique
-    assert len(names) == 10
+    # 5 (kicad_tools) + 10 (kicad_write_tools) + 3 (libforge_tools), all unique
+    assert len(names) == 18

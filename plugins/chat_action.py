@@ -89,6 +89,11 @@ try:  # pragma: no cover - import shim
 except ImportError:  # pragma: no cover - import shim
     from actions.kikit_tools import register_kikit_tools  # type: ignore[no-redef]
 
+try:  # pragma: no cover - import shim
+    from .actions.kicad_schematic_tools import register_schematic_tools
+except ImportError:  # pragma: no cover - import shim
+    from actions.kicad_schematic_tools import register_schematic_tools  # type: ignore[no-redef]
+
 # --- chat GUI --------------------------------------------------------------
 try:  # pragma: no cover - import shim
     from .chat_gui import ChatDialog
@@ -277,20 +282,32 @@ def _build_system_prompt() -> str:
         "You can propose actions via tools; every tool call requires "
         "explicit user approval before execution — nothing runs silently.",
         "Most tools are read-only (project info, component list, DRC/ERC, "
-        "EMC/EMI coupling analysis, library duplicate scanning). A few tools "
-        "modify the board or write new files (move/rotate a footprint, "
-        "change a footprint's value, generate a symbol/footprint, panelize "
-        "a board) — use those ONLY when the user clearly asked for that "
-        "specific change, never speculatively, and always state exactly "
-        "what you are about to do before calling the tool.",
+        "EMC/EMI coupling analysis, library duplicate scanning, track/via "
+        "listing, schematic wire/label/symbol listing). Many tools modify "
+        "the board, the schematic file, or write new files: move/rotate a "
+        "footprint, change a footprint's value, add/delete a footprint, "
+        "add/delete a track or via, reassign a pad's net, create a brand "
+        "new empty board file, add/delete a schematic wire, label, or "
+        "placed symbol, generate a symbol/footprint from a pinout/package "
+        "spec, panelize a board — use those ONLY when the user clearly "
+        "asked for that specific change, never speculatively, and always "
+        "state exactly what you are about to do before calling the tool.",
         "Some tools depend on sibling plugins or external tools (EMC-EMI "
         "Analyzer, LibForge, KiKit, FastHenry2/FastCap2) that may not be "
         "installed on this user's machine — if a tool call reports one is "
         "missing, relay that honestly instead of pretending it worked.",
-        "There is no way to add, delete, or rewire components/tracks/nets "
-        "on the board yet, and no schematic-editing tool exists — say so "
-        "plainly if asked for something outside this scope instead of "
-        "attempting a workaround.",
+        "IMPORTANT limitations to always state honestly when relevant: PCB "
+        "tools mutate the LIVE board in the open PCB editor (undoable via "
+        "Ctrl+Z, never auto-saved — the user must save with Ctrl+S). "
+        "Schematic tools are DIFFERENT: there is no live schematic-editor "
+        "API, so they edit the saved .kicad_sch FILE directly on disk — the "
+        "user must close and reopen the schematic (or accept KiCad's "
+        "reload prompt) to see the change, and every schematic write tool's "
+        "result message says so. add_schematic_symbol only supports flat, "
+        "non-hierarchical schematics. Net/pad reassignment does not "
+        "auto-rebuild the ratsnest — tell the user to re-run DRC/ERC "
+        "afterward. create_board_from_scratch writes a brand new separate "
+        "file and never touches the currently open board.",
         "Be concise and technical. When you don't have enough information, "
         "call the appropriate tool instead of guessing.",
     ]
@@ -362,6 +379,7 @@ def run_chat(parent=None) -> None:
         register_emc_emi_tools(registry)
         register_libforge_tools(registry)
         register_kikit_tools(registry)
+        register_schematic_tools(registry)
 
         system_prompt = _build_system_prompt()
         cost_alert_limit_usd = _resolve_cost_alert_limit(load_config())

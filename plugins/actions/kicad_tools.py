@@ -33,10 +33,25 @@ try:
 except ImportError:  # pragma: no cover - fallback for flat/test imports
     from llm_providers.base import ToolSpec
 
+# i18n: this module predates the i18n infrastructure and its EXISTING result
+# strings are left as untranslated Portuguese (a separately-tracked
+# follow-up) — but NEW additions (list_tracks) wrap in _() from the start,
+# using the exact same import-shim pattern as kicad_write_tools.py: never
+# `from ..i18n import _` directly, that breaks live language switching.
+try:
+    from .. import i18n as _i18n
+except ImportError:  # pragma: no cover - fallback for flat/test imports
+    import i18n as _i18n  # type: ignore[no-redef]
+
+
+def _(message: str) -> str:  # noqa: N807 - conventional gettext alias name
+    return _i18n._(message)
+
 
 _MAX_COMPONENT_LINES = 200
 _MAX_DRC_CHARS = 8000
 _MAX_ERC_CHARS = 8000
+_MAX_TRACK_LINES = 200
 
 
 def _get_board():
@@ -276,6 +291,85 @@ def run_erc(args: dict) -> str:
     return report_text
 
 
+def list_tracks(args: dict) -> str:
+    """List copper tracks and vias on the board (uuid, kind, net, layer,
+    geometry). ``board.GetTracks()`` returns tracks AND vias mixed together
+    (told apart via ``GetClass()``) and does NOT preserve insertion order —
+    the UUID is the only stable way to refer back to a specific item, e.g.
+    for delete_track.
+
+    Optional args:
+        net_filter: case-insensitive substring matched against the net name.
+    """
+    pcbnew, board = _get_board()
+
+    filter_text = (args or {}).get("net_filter")
+    filter_lower = filter_text.lower() if filter_text else None
+
+    rows = []
+    for item in board.GetTracks():
+        try:
+            uuid_str = item.m_Uuid.AsString()
+        except Exception:
+            uuid_str = "?"
+        try:
+            is_via = item.GetClass() == "PCB_VIA"
+        except Exception:
+            is_via = False
+        kind = "via" if is_via else "track"
+        try:
+            net_name = item.GetNetname()
+        except Exception:
+            net_name = "?"
+        try:
+            layer_name = board.GetLayerName(item.GetLayer())
+        except Exception:
+            layer_name = "?"
+
+        if filter_lower is not None:
+            if filter_lower not in (net_name or "").lower():
+                continue
+
+        if is_via:
+            try:
+                pos = item.GetPosition()
+                geometry = "pos=({x:.3f}, {y:.3f}) mm".format(
+                    x=pcbnew.ToMM(pos.x), y=pcbnew.ToMM(pos.y)
+                )
+            except Exception:
+                geometry = "?"
+        else:
+            try:
+                start = item.GetStart()
+                end = item.GetEnd()
+                geometry = (
+                    "start=({sx:.3f}, {sy:.3f}) mm end=({ex:.3f}, {ey:.3f}) mm"
+                ).format(
+                    sx=pcbnew.ToMM(start.x),
+                    sy=pcbnew.ToMM(start.y),
+                    ex=pcbnew.ToMM(end.x),
+                    ey=pcbnew.ToMM(end.y),
+                )
+            except Exception:
+                geometry = "?"
+
+        rows.append(f"{uuid_str}\t{kind}\t{net_name}\t{layer_name}\t{geometry}")
+
+    truncated = False
+    if len(rows) > _MAX_TRACK_LINES:
+        rows = rows[:_MAX_TRACK_LINES]
+        truncated = True
+
+    header = "UUID\tKind\tNet\tLayer\tGeometry"
+    body = "\n".join(rows) if rows else _("(nenhuma trilha/via encontrada)")
+    result = f"{header}\n{body}"
+    if truncated:
+        result += _("\n... (truncado a {max_lines} linhas)").format(
+            max_lines=_MAX_TRACK_LINES
+        )
+    return result
+
+
 def register_kicad_tools(registry: ActionRegistry) -> None:
     """Register all read-only KiCad tools on the given ActionRegistry."""
 
@@ -353,6 +447,36 @@ def register_kicad_tools(registry: ActionRegistry) -> None:
                 parameters={"type": "object", "properties": {}, "required": []},
             ),
             handler=run_erc,
+            read_only=True,
+        )
+    )
+
+    registry.register(
+        ActionDefinition(
+            spec=ToolSpec(
+                name="list_tracks",
+                description=(
+                    "Call this when the user asks what tracks/vias are on "
+                    "the board, wants to inspect routing, or needs a "
+                    "track/via's UUID before deleting it with delete_track. "
+                    "Optionally pass a 'net_filter' substring to narrow "
+                    "results to a specific net."
+                ),
+                parameters={
+                    "type": "object",
+                    "properties": {
+                        "net_filter": {
+                            "type": "string",
+                            "description": (
+                                "Case-insensitive substring to match against "
+                                "the net name."
+                            ),
+                        }
+                    },
+                    "required": [],
+                },
+            ),
+            handler=list_tracks,
             read_only=True,
         )
     )

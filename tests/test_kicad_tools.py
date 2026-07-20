@@ -24,6 +24,7 @@ def test_module_imports_without_pcbnew():
     assert hasattr(kt, "list_components")
     assert hasattr(kt, "run_drc")
     assert hasattr(kt, "run_erc")
+    assert hasattr(kt, "list_tracks")
 
 
 def _make_fake_footprint(reference, value, fp_id="Resistor_SMD:R_0603", layer="F.Cu"):
@@ -164,6 +165,134 @@ def test_run_erc_missing_schematic(fake_pcbnew, tmp_path):
     assert "não encontrado" in result
 
 
+# --------------------------------------------------------------------------- #
+# list_tracks
+# --------------------------------------------------------------------------- #
+class _FakeTrackUuid:
+    def __init__(self, s):
+        self._s = s
+
+    def AsString(self):
+        return self._s
+
+
+class _FakeTrackItem:
+    def __init__(self, uuid, net_name, layer_id, start, end):
+        self.m_Uuid = _FakeTrackUuid(uuid)
+        self._net_name = net_name
+        self._layer = layer_id
+        self._start = start
+        self._end = end
+
+    def GetClass(self):
+        return "PCB_TRACK"
+
+    def GetNetname(self):
+        return self._net_name
+
+    def GetLayer(self):
+        return self._layer
+
+    def GetStart(self):
+        return self._start
+
+    def GetEnd(self):
+        return self._end
+
+
+class _FakeViaItem:
+    def __init__(self, uuid, net_name, pos):
+        self.m_Uuid = _FakeTrackUuid(uuid)
+        self._net_name = net_name
+        self._pos = pos
+
+    def GetClass(self):
+        return "PCB_VIA"
+
+    def GetNetname(self):
+        return self._net_name
+
+    def GetLayer(self):
+        return 0
+
+    def GetPosition(self):
+        return self._pos
+
+
+@pytest.fixture
+def fake_pcbnew_with_tracks(monkeypatch):
+    pos = types.SimpleNamespace(x=1_000_000, y=2_000_000)
+    tracks = [
+        _FakeTrackItem("uuid-1", "GND", 0, pos, pos),
+        _FakeTrackItem("uuid-2", "VCC", 2, pos, pos),
+        _FakeViaItem("uuid-3", "GND", pos),
+    ]
+    board = types.SimpleNamespace()
+    board.GetTracks = lambda: list(tracks)
+    board.GetLayerName = lambda lid: {0: "F.Cu", 2: "B.Cu"}.get(lid, "?")
+
+    fake_module = types.SimpleNamespace()
+    fake_module.GetBoard = lambda: board
+    fake_module.ToMM = lambda v: v / 1e6
+
+    monkeypatch.setitem(sys.modules, "pcbnew", fake_module)
+
+    sys.modules.pop("actions.kicad_tools", None)
+    import actions.kicad_tools as kt
+
+    return kt, fake_module, board, tracks
+
+
+def test_list_tracks_no_filter(fake_pcbnew_with_tracks):
+    kt, _fake_module, _board, _tracks = fake_pcbnew_with_tracks
+    result = kt.list_tracks({})
+    assert "uuid-1" in result and "uuid-2" in result and "uuid-3" in result
+    assert "track" in result
+    assert "via" in result
+    assert "GND" in result and "VCC" in result
+
+
+def test_list_tracks_with_net_filter(fake_pcbnew_with_tracks):
+    kt, _fake_module, _board, _tracks = fake_pcbnew_with_tracks
+    result = kt.list_tracks({"net_filter": "gnd"})
+    assert "uuid-1" in result
+    assert "uuid-3" in result
+    assert "uuid-2" not in result
+
+
+def test_list_tracks_truncation(monkeypatch):
+    pos = types.SimpleNamespace(x=0, y=0)
+    tracks = [_FakeTrackItem(f"uuid-{i}", "NET", 0, pos, pos) for i in range(250)]
+    board = types.SimpleNamespace()
+    board.GetTracks = lambda: list(tracks)
+    board.GetLayerName = lambda lid: "F.Cu"
+
+    fake_module = types.SimpleNamespace()
+    fake_module.GetBoard = lambda: board
+    fake_module.ToMM = lambda v: v / 1e6
+    monkeypatch.setitem(sys.modules, "pcbnew", fake_module)
+
+    sys.modules.pop("actions.kicad_tools", None)
+    import actions.kicad_tools as kt
+
+    result = kt.list_tracks({})
+    assert "truncado" in result
+    line_count = result.count("\n") + 1
+    assert line_count <= 202
+
+
+def test_list_tracks_no_board(monkeypatch):
+    fake_module = types.SimpleNamespace()
+    fake_module.GetBoard = lambda: None
+    monkeypatch.setitem(sys.modules, "pcbnew", fake_module)
+
+    sys.modules.pop("actions.kicad_tools", None)
+    import actions.kicad_tools as kt
+
+    with pytest.raises(RuntimeError):
+        kt.list_tracks({})
+
+
 def test_register_kicad_tools():
     sys.modules.pop("pcbnew", None)
     sys.modules.pop("actions.kicad_tools", None)
@@ -174,7 +303,13 @@ def test_register_kicad_tools():
     kt.register_kicad_tools(registry)
 
     names = {spec.name for spec in registry.specs()}
-    assert names == {"get_project_info", "list_components", "run_drc", "run_erc"}
+    assert names == {
+        "get_project_info",
+        "list_components",
+        "run_drc",
+        "run_erc",
+        "list_tracks",
+    }
 
     # Each registered handler should raise the graceful RuntimeError when
     # pcbnew is unavailable, rather than an ImportError/AttributeError.

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KiCad Chat Assistant VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-20 16:08+0100\n"
+"POT-Creation-Date: 2026-07-20 22:25+0100\n"
 "PO-Revision-Date: 2026-07-20 04:00+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -37,12 +37,26 @@ msgstr ""
 msgid "Ficheiro binário não suportado (não é imagem, PDF, nem texto legível)."
 msgstr ""
 
-#: chat_action.py:187
+#: chat_action.py:228
 #, python-brace-format
 msgid "Erro inesperado ao criar o provider '{provider_id}': {exc}"
 msgstr "Unexpected error creating provider '{provider_id}': {exc}"
 
-#: chat_action.py:197
+#: chat_action.py:247
+#, python-brace-format
+msgid ""
+"{label} não encontrou o comando '{cli}' no PATH.\n"
+"\n"
+"Instale com: {install}\n"
+"Depois, autentique-se com a sua conta correndo '{cli}' num terminal (ou "
+"'{cli} login', se existir esse comando) e volte a selecionar o provider."
+msgstr ""
+
+#: chat_action.py:257 chat_action.py:270
+msgid "Provedor não configurado"
+msgstr "Provider not configured"
+
+#: chat_action.py:262
 #, python-brace-format
 msgid ""
 "{label} não tem uma API key configurada.\n"
@@ -55,219 +69,215 @@ msgstr ""
 "Set it in {config_path} (key 'providers.{provider_id}.api_key') or in the"
 " corresponding environment variable, then select the provider again."
 
-#: chat_action.py:205
-msgid "Provedor não configurado"
-msgstr "Provider not configured"
-
-#: chat_gui.py:111
+#: chat_gui.py:127
 msgid "Escolher modelo"
 msgstr "Choose model"
 
-#: chat_gui.py:131
+#: chat_gui.py:147
 msgid ""
 "Não foi possível obter a lista de modelos deste fornecedor (verifique a "
 "chave API ou a ligação). Pode escrever o nome do modelo diretamente no "
 "campo 'Modelo'."
 msgstr ""
 
-#: chat_gui.py:141
+#: chat_gui.py:157
 msgid "Selecionar"
 msgstr "Select"
 
-#: chat_gui.py:144
+#: chat_gui.py:160
 msgid "Cancelar"
 msgstr "Cancel"
 
-#: chat_gui.py:167
+#: chat_gui.py:183
 msgid "Conversas"
 msgstr "Conversations"
 
-#: chat_gui.py:188 chat_gui.py:412 chat_gui.py:574
+#: chat_gui.py:204 chat_gui.py:458 chat_gui.py:641
 msgid "Nova conversa"
 msgstr "New conversation"
 
-#: chat_gui.py:192
+#: chat_gui.py:208
 msgid "Abrir"
 msgstr "Open"
 
-#: chat_gui.py:197
+#: chat_gui.py:213
 msgid "Eliminar"
 msgstr "Delete"
 
-#: chat_gui.py:205 chat_gui.py:312
+#: chat_gui.py:221 chat_gui.py:328
 msgid "Fechar"
 msgstr "Close"
 
-#: chat_gui.py:248
+#: chat_gui.py:264
 #, python-brace-format
 msgid "Eliminar a conversa '{title}'? Esta ação não pode ser desfeita."
 msgstr "Delete conversation '{title}'? This action cannot be undone."
 
-#: chat_gui.py:251
+#: chat_gui.py:267
 msgid "Eliminar conversa?"
 msgstr "Delete conversation?"
 
-#: chat_gui.py:279 chat_gui.py:419 chat_gui.py:577
+#: chat_gui.py:295 chat_gui.py:465 chat_gui.py:644
 msgid "Sobre / Suporte"
 msgstr "About / Support"
 
-#: chat_gui.py:295
+#: chat_gui.py:311
 #, python-brace-format
 msgid "Criado e mantido por {author}."
 msgstr "Created and maintained by {author}."
 
-#: chat_gui.py:302
+#: chat_gui.py:318
 msgid ""
 "Para questões, sugestões ou reportar problemas, usa o repositório no "
 "GitHub:"
 msgstr ""
 
-#: chat_gui.py:415 chat_gui.py:575
+#: chat_gui.py:461 chat_gui.py:642
 msgid "Conversas..."
 msgstr "Conversations..."
 
-#: chat_gui.py:429 chat_gui.py:569
+#: chat_gui.py:480 chat_gui.py:636
 msgid "Provedor:"
 msgstr "Provider:"
 
-#: chat_gui.py:449 chat_gui.py:570
-msgid "Modelo:"
-msgstr "Model:"
-
-#: chat_gui.py:459 chat_gui.py:573 chat_gui.py:677
-msgid "(padrão do fornecedor)"
-msgstr "(provider default)"
-
-#: chat_gui.py:475 chat_gui.py:571
+#: chat_gui.py:495 chat_gui.py:638
 msgid "Idioma:"
 msgstr "Language:"
 
-#: chat_gui.py:497 chat_gui.py:589
+#: chat_gui.py:514 chat_gui.py:637
+msgid "Modelo:"
+msgstr "Model:"
+
+#: chat_gui.py:519 chat_gui.py:640 chat_gui.py:790
+msgid "(padrão do fornecedor)"
+msgstr "(provider default)"
+
+#: chat_gui.py:548 chat_gui.py:656
 #, fuzzy
 msgid "Modo:"
 msgstr "Model:"
 
-#: chat_gui.py:506 chat_gui.py:594
+#: chat_gui.py:565 chat_gui.py:666
 msgid "Anexar ficheiro..."
 msgstr "Attach file..."
 
-#: chat_gui.py:525 chat_gui.py:572
+#: chat_gui.py:592 chat_gui.py:639
 msgid "Enviar"
 msgstr "Send"
 
-#: chat_gui.py:533 chat_gui.py:601 chat_gui.py:810 chat_gui.py:928
+#: chat_gui.py:600 chat_gui.py:673 chat_gui.py:930 chat_gui.py:1048
 msgid "Pronto."
 msgstr "Ready."
 
-#: chat_gui.py:537 chat_gui.py:576
+#: chat_gui.py:604 chat_gui.py:643
 msgid "Limite..."
 msgstr "Limit..."
 
-#: chat_gui.py:619
+#: chat_gui.py:691
 #, python-brace-format
 msgid "Não foi possível inicializar o fornecedor '{name}': {err}"
 msgstr "Could not initialise provider '{name}': {err}"
 
-#: chat_gui.py:645
+#: chat_gui.py:758
 #, fuzzy, python-brace-format
 msgid "Modo definido como: {mode}"
 msgstr "Model set to {model}."
 
-#: chat_gui.py:662
+#: chat_gui.py:775
 #, python-brace-format
 msgid "Mudou para {name}."
 msgstr "Switched to {name}."
 
-#: chat_gui.py:676
+#: chat_gui.py:789
 #, python-brace-format
 msgid "Modelo definido como {model}."
 msgstr "Model set to {model}."
 
-#: chat_gui.py:689
+#: chat_gui.py:802
 #, fuzzy
 msgid "Nenhum fornecedor está configurado."
 msgstr "No provider is configured. Check your API key / installation."
 
-#: chat_gui.py:716
+#: chat_gui.py:824
 msgid "Anexar ficheiro(s)"
 msgstr "Attach file(s)"
 
-#: chat_gui.py:733
+#: chat_gui.py:853
 #, python-brace-format
 msgid "[Anexos pendentes: {names}]"
 msgstr "[Pending attachments: {names}]"
 
-#: chat_gui.py:746
+#: chat_gui.py:866
 msgid "Define o limite de custo desta sessão em USD (vazio = sem limite/alertas):"
 msgstr "Set this session's cost limit in USD (empty = no limit/alerts):"
 
-#: chat_gui.py:749
+#: chat_gui.py:869
 msgid "Limite de custo"
 msgstr "Cost limit"
 
-#: chat_gui.py:766
+#: chat_gui.py:886
 #, python-brace-format
 msgid "Valor de limite inválido: '{value}'."
 msgstr "Invalid limit value: '{value}'."
 
-#: chat_gui.py:818 chat_gui.py:831
+#: chat_gui.py:938 chat_gui.py:951
 msgid "[info] Nova conversa iniciada."
 msgstr "[info] New conversation started."
 
-#: chat_gui.py:837
+#: chat_gui.py:957
 #, fuzzy, python-brace-format
 msgid "Não foi possível abrir a conversa: {err}"
 msgstr "Could not initialise provider '{name}': {err}"
 
-#: chat_gui.py:843
+#: chat_gui.py:963
 msgid "[info] Conversa aberta."
 msgstr "[info] Conversation opened."
 
-#: chat_gui.py:868
+#: chat_gui.py:988
 msgid "Nenhum fornecedor está configurado. Verifique a sua API key / instalação."
 msgstr "No provider is configured. Check your API key / installation."
 
-#: chat_gui.py:880
+#: chat_gui.py:1000
 msgid "A pensar..."
 msgstr "Thinking..."
 
-#: chat_gui.py:915
+#: chat_gui.py:1035
 msgid "Erro."
 msgstr "Error."
 
-#: chat_gui.py:954
+#: chat_gui.py:1074
 #, python-brace-format
 msgid "Custo da sessão: ${spent} / ${limit}"
 msgstr "Session cost: ${spent} / ${limit}"
 
-#: chat_gui.py:959
+#: chat_gui.py:1079
 #, python-brace-format
 msgid "Custo da sessão: ${spent}"
 msgstr "Session cost: ${spent}"
 
-#: chat_gui.py:977
+#: chat_gui.py:1097
 #, python-brace-format, python-format
 msgid ""
 "[aviso de custo] {pct}% do limite da sessão atingido (${spent} / "
 "${limit})."
 msgstr "[cost warning] {pct}% of session limit reached (${spent} / ${limit})."
 
-#: chat_gui.py:1020
+#: chat_gui.py:1140
 #, fuzzy
 msgid "⚠ Aprovar ALTERAÇÃO à placa?"
 msgstr "Approve action?"
 
-#: chat_gui.py:1023
+#: chat_gui.py:1143
 msgid ""
 "ATENÇÃO: esta ação MODIFICA a placa aberta.\n"
 "\n"
 msgstr ""
 
-#: chat_gui.py:1026
+#: chat_gui.py:1146
 msgid "Aprovar ação?"
 msgstr "Approve action?"
 
-#: chat_gui.py:1031
+#: chat_gui.py:1151
 #, fuzzy, python-brace-format
 msgid ""
 "{warning}O assistente quer executar a ação:\n"
@@ -292,49 +302,106 @@ msgstr ""
 "\n"
 "Allow this action?"
 
-#: chat_gui.py:1074
+#: chat_gui.py:1194
 msgid "Você:"
 msgstr "You:"
 
-#: chat_gui.py:1077
+#: chat_gui.py:1197
 #, fuzzy, python-brace-format
 msgid "[anexo] {name}"
 msgstr "[action] {name}"
 
-#: chat_gui.py:1081
+#: chat_gui.py:1201
 msgid "Assistente:"
 msgstr "Assistant:"
 
-#: chat_gui.py:1088
+#: chat_gui.py:1208
 msgid "[aviso] Resposta vazia do fornecedor."
 msgstr "[warning] Empty response from provider."
 
-#: chat_gui.py:1094
+#: chat_gui.py:1214
 #, fuzzy, python-brace-format
 msgid "[ação] ⚠ a propor ALTERAÇÃO: {name}"
 msgstr "[action] proposing: {name}"
 
-#: chat_gui.py:1098
+#: chat_gui.py:1218
 #, python-brace-format
 msgid "[ação] a propor: {name}"
 msgstr "[action] proposing: {name}"
 
-#: chat_gui.py:1104
-#, python-brace-format
-msgid "[custo] esta chamada: ${amount}"
-msgstr "[cost] this call: ${amount}"
-
-#: chat_gui.py:1109
+#: chat_gui.py:1228
 msgid " ...[truncado]"
 msgstr " ...[truncated]"
 
-#: chat_gui.py:1110
+#: chat_gui.py:1229
 msgid "[ação] resultado"
 msgstr "[action] result"
 
-#: chat_gui.py:1116
+#: chat_gui.py:1235
 msgid "[erro]"
 msgstr "[error]"
+
+#: actions/emc_emi_tools.py:114
+msgid ""
+"O plugin EMC-EMI Analyzer não está instalado nesta máquina — esta "
+"ferramenta precisa dele para extrair a geometria das trilhas da placa."
+msgstr ""
+
+#: actions/emc_emi_tools.py:119
+#, fuzzy, python-brace-format
+msgid "Erro ao carregar o EMC-EMI Analyzer: {err}"
+msgstr "Error executing {name}: {err}"
+
+#: actions/emc_emi_tools.py:132
+#, python-brace-format
+msgid "Nenhuma trilha de cobre {scope} encontrada na placa aberta."
+msgstr ""
+
+#: actions/emc_emi_tools.py:133
+#, fuzzy
+msgid "selecionada"
+msgstr "Select"
+
+#: actions/emc_emi_tools.py:133
+msgid "retilínea"
+msgstr ""
+
+#: actions/emc_emi_tools.py:151
+#, python-brace-format
+msgid "Análise de acoplamento sobre {n} trilha(s) (fonte: {scope})."
+msgstr ""
+
+#: actions/emc_emi_tools.py:153
+msgid "seleção atual"
+msgstr ""
+
+#: actions/emc_emi_tools.py:153
+msgid "toda a placa"
+msgstr ""
+
+#: actions/emc_emi_tools.py:161
+#, python-brace-format
+msgid "--- Acoplamento indutivo (FastHenry2, {f:g} Hz) ---"
+msgstr ""
+
+#: actions/emc_emi_tools.py:172 actions/emc_emi_tools.py:201
+#, python-brace-format
+msgid "  Indisponível: {err}"
+msgstr ""
+
+#: actions/emc_emi_tools.py:174
+#, fuzzy, python-brace-format
+msgid "  Erro no cálculo indutivo: {err}"
+msgstr "Gemini API error: {err}"
+
+#: actions/emc_emi_tools.py:192
+msgid "--- Acoplamento capacitivo (FastCap2) ---"
+msgstr ""
+
+#: actions/emc_emi_tools.py:203
+#, fuzzy, python-brace-format
+msgid "  Erro no cálculo capacitivo: {err}"
+msgstr "Gemini API error: {err}"
 
 #: actions/framework.py:77
 #, python-brace-format
@@ -386,56 +453,622 @@ msgid ""
 "interromper o ciclo."
 msgstr "[warning] Limit of {max_rounds} tool rounds reached; stopping the loop."
 
-#: actions/kicad_write_tools.py:65
+#: actions/kicad_schematic_tools.py:114
+msgid ""
+"O plugin LibForge não está instalado nesta máquina — as ferramentas de "
+"esquemático precisam dele (é através do LibForge que chegamos ao kiutils,"
+" a biblioteca que lê/escreve ficheiros .kicad_sch)."
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:123
+msgid ""
+"Feche e reabra o esquemático no editor do KiCad para ver esta alteração "
+"(ou aceite o pedido do KiCad para recarregar o ficheiro) — esta "
+"ferramenta edita o ficheiro .kicad_sch diretamente, não o esquemático "
+"aberto ao vivo."
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:147 actions/kicad_write_tools.py:69
+#: actions/kicad_write_tools.py:478
 msgid "pcbnew indisponível — esta ferramenta só funciona dentro do KiCad"
 msgstr ""
 
-#: actions/kicad_write_tools.py:70
+#: actions/kicad_schematic_tools.py:152 actions/kicad_write_tools.py:74
 msgid "Nenhum board KiCad está atualmente aberto"
 msgstr ""
 
-#: actions/kicad_write_tools.py:78
+#: actions/kicad_schematic_tools.py:162
+msgid ""
+"Não foi possível determinar o caminho do projeto para localizar o "
+"esquemático."
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:169
 #, python-brace-format
-msgid "Componente '{reference}' não encontrado na placa."
+msgid "Esquemático não encontrado: {path}"
 msgstr ""
 
-#: actions/kicad_write_tools.py:97
-msgid "Falta o argumento 'reference'."
+#: actions/kicad_schematic_tools.py:192
+#, fuzzy, python-brace-format
+msgid "Erro ao ler o esquemático {path}: {err}"
+msgstr "Error executing {name}: {err}"
+
+#: actions/kicad_schematic_tools.py:232
+msgid "Índice\tUUID\tInício (mm)\tFim (mm)"
 msgstr ""
 
-#: actions/kicad_write_tools.py:111
+#: actions/kicad_schematic_tools.py:233
+#, fuzzy
+msgid "(nenhum fio encontrado)"
+msgstr "No provider is configured. Check your API key / installation."
+
+#: actions/kicad_schematic_tools.py:255
+#, python-brace-format
+msgid "Argumentos de coordenadas inválidos ou em falta: {err}"
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:273
+#, python-brace-format
+msgid ""
+"Fio adicionado de ({sx:.3f}, {sy:.3f}) mm a ({ex:.3f}, {ey:.3f}) mm em "
+"{path}."
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:296
+msgid "Falta o argumento 'uuid' ou 'index'."
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:308
+#, python-brace-format
+msgid "Nenhum fio encontrado com uuid '{uuid}'."
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:315 actions/kicad_schematic_tools.py:452
+#, python-brace-format
+msgid "Argumento 'index' inválido: {err}"
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:319
+#, python-brace-format
+msgid "Índice de fio inválido: {idx} (existem {n} fios)."
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:329
+#, fuzzy, python-brace-format
+msgid "Fio removido de {path}."
+msgstr "Created and maintained by {author}."
+
+#: actions/kicad_schematic_tools.py:358
+msgid "Índice\tTipo\tTexto\tPosição (mm)\tForma"
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:359
+msgid "(nenhuma etiqueta encontrada)"
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:377
+msgid "Falta o argumento 'text'."
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:383 actions/kicad_schematic_tools.py:548
+#: actions/kicad_write_tools.py:115 actions/kicad_write_tools.py:229
+#: actions/kicad_write_tools.py:395
 #, python-brace-format
 msgid "Argumentos 'x_mm'/'y_mm' inválidos: {err}"
 msgstr ""
 
-#: actions/kicad_write_tools.py:123
+#: actions/kicad_schematic_tools.py:389
+#, python-brace-format
+msgid "Argumento 'kind' inválido: '{kind}' (use 'local' ou 'global')."
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:397
+#, python-brace-format
+msgid "Argumento 'shape' inválido: '{shape}'."
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:422
+#, python-brace-format
+msgid "Etiqueta {kind} '{text}' adicionada em ({x:.3f}, {y:.3f}) mm em {path}."
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:444
+msgid "Argumento 'kind' inválido ou em falta (use 'local' ou 'global')."
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:448
+msgid "Falta o argumento 'index'."
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:460
+#, python-brace-format
+msgid "Índice de etiqueta inválido: {idx} (existem {n})."
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:469
+#, python-brace-format
+msgid "Etiqueta {kind} '{text}' removida de {path}."
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:503
+msgid "Referência\tValor\tLib ID\tPosição (mm)"
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:504
+msgid "(nenhum símbolo encontrado)"
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:536
+msgid "Falta o argumento 'symbol_library_path'."
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:539 actions/libforge_tools.py:281
+#: actions/libforge_tools.py:379
+msgid "Falta o argumento 'entry_name'."
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:542 actions/kicad_schematic_tools.py:698
+#: actions/kicad_write_tools.py:101
+msgid "Falta o argumento 'reference'."
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:554 actions/kicad_write_tools.py:236
+#, python-brace-format
+msgid "Argumento 'rotation_deg' inválido: {err}"
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:562
+#, python-brace-format
+msgid "Biblioteca de símbolos não encontrada: {path}"
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:574
+#, python-brace-format
+msgid "Já existe um símbolo com a referência '{reference}' no esquemático."
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:591
+#, python-brace-format
+msgid "Erro ao ler a biblioteca de símbolos {path}: {err}"
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:599
+#, python-brace-format
+msgid "Símbolo '{entry}' não encontrado em {path}."
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:676
+#, python-brace-format
+msgid ""
+"Símbolo '{entry}' colocado como {reference} em ({x:.3f}, {y:.3f}) mm em "
+"{path}."
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:711
+#, python-brace-format
+msgid "Símbolo com referência '{reference}' não encontrado no esquemático."
+msgstr ""
+
+#: actions/kicad_schematic_tools.py:720
+#, python-brace-format
+msgid "Símbolo '{reference}' removido de {path}."
+msgstr ""
+
+#: actions/kicad_tools.py:364
+msgid "(nenhuma trilha/via encontrada)"
+msgstr ""
+
+#: actions/kicad_tools.py:367
+#, python-brace-format
+msgid ""
+"\n"
+"... (truncado a {max_lines} linhas)"
+msgstr ""
+
+#: actions/kicad_write_tools.py:82
+#, python-brace-format
+msgid "Componente '{reference}' não encontrado na placa."
+msgstr ""
+
+#: actions/kicad_write_tools.py:127
 #, python-brace-format
 msgid ""
 "{reference} movido de ({old_x:.3f}, {old_y:.3f}) mm para ({new_x:.3f}, "
 "{new_y:.3f}) mm. Guarde a placa (Ctrl+S) para persistir a alteração."
 msgstr ""
 
-#: actions/kicad_write_tools.py:138
+#: actions/kicad_write_tools.py:142
 #, python-brace-format
 msgid "Argumento 'angle_deg' inválido: {err}"
 msgstr ""
 
-#: actions/kicad_write_tools.py:147
+#: actions/kicad_write_tools.py:151
 #, python-brace-format
 msgid ""
 "{reference} rodado de {old_angle:.1f}° para {new_angle:.1f}°. Guarde a "
 "placa (Ctrl+S) para persistir a alteração."
 msgstr ""
 
-#: actions/kicad_write_tools.py:159
+#: actions/kicad_write_tools.py:163
 msgid "Falta o argumento 'value'."
 msgstr ""
 
-#: actions/kicad_write_tools.py:167
+#: actions/kicad_write_tools.py:171
 #, python-brace-format
 msgid ""
 "Valor de {reference} alterado de '{old_value}' para '{new_value}'. Guarde"
 " a placa (Ctrl+S) para persistir a alteração."
+msgstr ""
+
+#: actions/kicad_write_tools.py:179
+msgid "Falta o argumento 'layer'."
+msgstr ""
+
+#: actions/kicad_write_tools.py:183
+#, python-brace-format
+msgid "Layer '{layer}' inválido."
+msgstr ""
+
+#: actions/kicad_write_tools.py:211
+msgid "Falta o argumento 'library_path'."
+msgstr ""
+
+#: actions/kicad_write_tools.py:214
+msgid "Falta o argumento 'footprint_name'."
+msgstr ""
+
+#: actions/kicad_write_tools.py:219
+#, python-brace-format
+msgid "Já existe um componente com a referência '{reference}' na placa."
+msgstr ""
+
+#: actions/kicad_write_tools.py:243
+#, python-brace-format
+msgid "Erro ao carregar o footprint '{name}' de '{path}': {err}"
+msgstr ""
+
+#: actions/kicad_write_tools.py:249
+#, python-brace-format
+msgid "Footprint '{name}' não encontrado em '{path}'."
+msgstr ""
+
+#: actions/kicad_write_tools.py:264
+#, python-brace-format
+msgid ""
+"Componente '{reference}' ({footprint_name}) adicionado à placa em "
+"({x:.3f}, {y:.3f}) mm. Guarde a placa (Ctrl+S) para persistir a "
+"alteração."
+msgstr ""
+
+#: actions/kicad_write_tools.py:281
+#, python-brace-format
+msgid ""
+"Componente '{reference}' removido da placa. Guarde a placa (Ctrl+S) para "
+"persistir a alteração."
+msgstr ""
+
+#: actions/kicad_write_tools.py:300
+#, fuzzy, python-brace-format
+msgid "Argumentos de coordenadas da trilha inválidos: {err}"
+msgstr "OpenAI response has invalid tool arguments: {err}"
+
+#: actions/kicad_write_tools.py:309
+#, python-brace-format
+msgid "Argumento 'width_mm' inválido: {err}"
+msgstr ""
+
+#: actions/kicad_write_tools.py:328
+#, python-brace-format
+msgid ""
+"Trilha adicionada em '{layer}' de ({sx:.3f}, {sy:.3f}) mm a ({ex:.3f}, "
+"{ey:.3f}) mm, largura {width:.3f} mm (uuid: {uuid}). Guarde a placa "
+"(Ctrl+S) para persistir a alteração."
+msgstr ""
+
+#: actions/kicad_write_tools.py:350
+msgid "Falta o argumento 'uuid'."
+msgstr ""
+
+#: actions/kicad_write_tools.py:364
+#, python-brace-format
+msgid "Nenhuma trilha/via encontrada com uuid '{uuid}'."
+msgstr ""
+
+#: actions/kicad_write_tools.py:371
+#, fuzzy
+msgid "Via"
+msgstr "Send"
+
+#: actions/kicad_write_tools.py:371
+msgid "Trilha"
+msgstr ""
+
+#: actions/kicad_write_tools.py:377
+#, python-brace-format
+msgid ""
+"{kind} com uuid '{uuid}' removida da placa. Guarde a placa (Ctrl+S) para "
+"persistir a alteração."
+msgstr ""
+
+#: actions/kicad_write_tools.py:403
+#, python-brace-format
+msgid "Argumentos 'drill_mm'/'width_mm' inválidos: {err}"
+msgstr ""
+
+#: actions/kicad_write_tools.py:421
+#, python-brace-format
+msgid ""
+"Via adicionada em ({x:.3f}, {y:.3f}) mm, furo {drill:.3f} mm, diâmetro "
+"{width:.3f} mm (uuid: {uuid}). Guarde a placa (Ctrl+S) para persistir a "
+"alteração."
+msgstr ""
+
+#: actions/kicad_write_tools.py:437
+msgid "Falta o argumento 'pad_number'."
+msgstr ""
+
+#: actions/kicad_write_tools.py:440
+msgid "Falta o argumento 'net_name'."
+msgstr ""
+
+#: actions/kicad_write_tools.py:446
+#, python-brace-format
+msgid "Pad '{pad}' não encontrado no componente '{reference}'."
+msgstr ""
+
+#: actions/kicad_write_tools.py:456
+#, python-brace-format
+msgid ""
+"Pad {pad} de {reference} ligado à net '{net}'. Guarde a placa (Ctrl+S) "
+"para persistir a alteração. Recomenda-se correr novamente o DRC e "
+"verificar visualmente o ratsnest — esta ferramenta não reconstrói "
+"automaticamente a visualização de conectividade."
+msgstr ""
+
+#: actions/kicad_write_tools.py:484
+msgid "Falta o argumento 'path'."
+msgstr ""
+
+#: actions/kicad_write_tools.py:491
+#, python-brace-format
+msgid ""
+"Já existe um ficheiro em '{path}' — esta ferramenta não substitui uma "
+"placa existente."
+msgstr ""
+
+#: actions/kicad_write_tools.py:501
+#, python-brace-format
+msgid "Argumentos 'width_mm'/'height_mm' inválidos: {err}"
+msgstr ""
+
+#: actions/kicad_write_tools.py:516
+#, python-brace-format
+msgid ""
+"Nova placa criada em '{path}' com contorno de {width:.3f} x {height:.3f} "
+"mm. Esta operação NÃO afeta a placa atualmente aberta no editor — abra o "
+"novo ficheiro manualmente (File > Open Board) para o editar."
+msgstr ""
+
+#: actions/kikit_tools.py:112
+msgid ""
+"Não foi indicado 'input_path' e o pcbnew não está disponível para o "
+"determinar automaticamente — esta ferramenta só consegue adivinhar a "
+"placa aberta dentro do KiCad."
+msgstr ""
+
+#: actions/kikit_tools.py:122
+msgid "Não foi indicado 'input_path' e nenhum board KiCad está atualmente aberto."
+msgstr ""
+
+#: actions/kikit_tools.py:131
+msgid ""
+"Não foi indicado 'input_path' e a placa aberta ainda não foi guardada "
+"(sem nome de ficheiro)."
+msgstr ""
+
+#: actions/kikit_tools.py:169
+#, python-brace-format
+msgid "Ficheiro de entrada não encontrado: {path}"
+msgstr ""
+
+#: actions/kikit_tools.py:174
+msgid "Falta o argumento 'output_path'."
+msgstr ""
+
+#: actions/kikit_tools.py:182
+msgid ""
+"'output_path' tem de ser diferente de 'input_path' — esta ferramenta "
+"nunca sobrescreve o ficheiro de entrada."
+msgstr ""
+
+#: actions/kikit_tools.py:192
+#, python-brace-format
+msgid "Argumentos 'rows'/'cols' inválidos: {err}"
+msgstr ""
+
+#: actions/kikit_tools.py:195
+msgid "'rows' e 'cols' têm de ser inteiros >= 1."
+msgstr ""
+
+#: actions/kikit_tools.py:202
+#, python-brace-format
+msgid "Argumentos 'h_space_mm'/'v_space_mm' inválidos: {err}"
+msgstr ""
+
+#: actions/kikit_tools.py:209
+#, python-brace-format
+msgid "'cut_type' inválido: '{cut_type}'. Valores aceites: {valid}."
+msgstr ""
+
+#: actions/kikit_tools.py:217
+msgid ""
+"Não foi encontrado o Python embutido do KiCad (necessário para correr o "
+"KiKit). Verifique se o KiCad está corretamente instalado."
+msgstr ""
+
+#: actions/kikit_tools.py:257
+#, fuzzy, python-brace-format
+msgid "Não foi possível iniciar o Python do KiCad: {err}"
+msgstr "Could not initialise provider '{name}': {err}"
+
+#: actions/kikit_tools.py:261
+#, python-brace-format
+msgid "O KiKit não respondeu em {timeout}s."
+msgstr ""
+
+#: actions/kikit_tools.py:271
+#, python-brace-format
+msgid ""
+"O KiKit não está instalado no Python do KiCad. Instale com: \"{python}\" "
+"-m pip install kikit"
+msgstr ""
+
+#: actions/kikit_tools.py:275
+msgid "(sem detalhe)"
+msgstr ""
+
+#: actions/kikit_tools.py:278
+#, python-brace-format
+msgid "O KiKit terminou com erro (código {code}): {detail}"
+msgstr ""
+
+#: actions/kikit_tools.py:285
+#, python-brace-format
+msgid "O KiKit terminou sem erro mas o ficheiro de saída não foi criado: {path}"
+msgstr ""
+
+#: actions/kikit_tools.py:291
+#, python-brace-format
+msgid ""
+"Placa painelizada com sucesso: {rows}x{cols}, espaçamento {h_space}mm x "
+"{v_space}mm, cortes '{cut_type}'. Ficheiro novo gravado em: "
+"{output_path}. A placa aberta atualmente NÃO foi alterada — abra o "
+"ficheiro novo no KiCad para o ver."
+msgstr ""
+
+#: actions/libforge_tools.py:102
+msgid ""
+"O plugin LibForge não está instalado nesta máquina — esta ferramenta "
+"precisa dele."
+msgstr ""
+
+#: actions/libforge_tools.py:173
+msgid "Falta o argumento 'folder_path'."
+msgstr ""
+
+#: actions/libforge_tools.py:176
+msgid "Falta o argumento 'destination_library_path'."
+msgstr ""
+
+#: actions/libforge_tools.py:180
+#, python-brace-format
+msgid "Pasta não encontrada: {path}"
+msgstr ""
+
+#: actions/libforge_tools.py:189 actions/libforge_tools.py:294
+#: actions/libforge_tools.py:402
+#, fuzzy, python-brace-format
+msgid "Erro ao carregar o LibForge: {err}"
+msgstr "Error executing {name}: {err}"
+
+#: actions/libforge_tools.py:198
+#, python-brace-format
+msgid "Erro ao carregar o kiutils do LibForge: {err}"
+msgstr ""
+
+#: actions/libforge_tools.py:203
+#, python-brace-format
+msgid "Nenhum candidato (símbolo/footprint/modelo 3D) encontrado em {path}."
+msgstr ""
+
+#: actions/libforge_tools.py:213
+#, python-brace-format
+msgid "Análise de {n} candidato(s) em {path} contra {dest}."
+msgstr ""
+
+#: actions/libforge_tools.py:227 actions/libforge_tools.py:229
+msgid "símbolo"
+msgstr ""
+
+#: actions/libforge_tools.py:229 actions/libforge_tools.py:236
+#: actions/libforge_tools.py:243
+#, fuzzy
+msgid "ausente"
+msgstr "Assistant:"
+
+#: actions/libforge_tools.py:234 actions/libforge_tools.py:236
+msgid "footprint"
+msgstr ""
+
+#: actions/libforge_tools.py:240 actions/libforge_tools.py:243
+#, fuzzy
+msgid "modelo 3D"
+msgstr "Model:"
+
+#: actions/libforge_tools.py:240
+msgid "presente (verificação de duplicados não suportada para modelos 3D)"
+msgstr ""
+
+#: actions/libforge_tools.py:248
+#, python-brace-format
+msgid "... (truncado a {n} candidatos)"
+msgstr ""
+
+#: actions/libforge_tools.py:284
+msgid "Falta o argumento 'pins' (lista de pinos)."
+msgstr ""
+
+#: actions/libforge_tools.py:287 actions/libforge_tools.py:382
+msgid "Falta o argumento 'dest_path'."
+msgstr ""
+
+#: actions/libforge_tools.py:300
+#, python-brace-format
+msgid "Pino inválido no índice {i}: esperava um objeto."
+msgstr ""
+
+#: actions/libforge_tools.py:307
+#, python-brace-format
+msgid "Pino inválido no índice {i}: falta '{field}'."
+msgstr ""
+
+#: actions/libforge_tools.py:335
+#, fuzzy, python-brace-format
+msgid "Erro ao gerar o símbolo: {err}"
+msgstr "Error executing {name}: {err}"
+
+#: actions/libforge_tools.py:337
+#, python-brace-format
+msgid "Erro ao escrever o ficheiro do símbolo: {err}"
+msgstr ""
+
+#: actions/libforge_tools.py:340
+#, python-brace-format
+msgid "Símbolo '{name}' gerado e guardado em {path}."
+msgstr ""
+
+#: actions/libforge_tools.py:345 actions/libforge_tools.py:427
+msgid "Avisos:"
+msgstr ""
+
+#: actions/libforge_tools.py:392
+#, python-brace-format
+msgid "Argumentos numéricos inválidos ou em falta: {err}"
+msgstr ""
+
+#: actions/libforge_tools.py:417
+#, fuzzy, python-brace-format
+msgid "Erro ao gerar o footprint: {err}"
+msgstr "OpenAI API error: {err}"
+
+#: actions/libforge_tools.py:419
+#, python-brace-format
+msgid "Erro ao escrever o ficheiro do footprint: {err}"
+msgstr ""
+
+#: actions/libforge_tools.py:422
+#, python-brace-format
+msgid "Footprint '{name}' gerado e guardado em {path}."
 msgstr ""
 
 #: llm_providers/__init__.py:70
@@ -454,12 +1087,22 @@ msgstr "ChatGPT (OpenAI)"
 msgid "Gemini (Google)"
 msgstr "Gemini (Google)"
 
-#: llm_providers/__init__.py:158
+#: llm_providers/__init__.py:74
+#, fuzzy
+msgid "Gemini CLI (conta Google)"
+msgstr "Gemini (Google)"
+
+#: llm_providers/__init__.py:75
+#, fuzzy
+msgid "Codex CLI (subscrição ChatGPT)"
+msgstr "Claude Code (local subscription)"
+
+#: llm_providers/__init__.py:160
 #, python-brace-format
 msgid "Provedor desconhecido: '{id}'"
 msgstr "Unknown provider: '{id}'"
 
-#: llm_providers/__init__.py:187
+#: llm_providers/__init__.py:197
 #, python-brace-format
 msgid "Pacote '{pip_name}' não instalado. Instale com: pip install {pip_name}"
 msgstr ""
@@ -467,6 +1110,8 @@ msgstr ""
 "{pip_name}"
 
 #: llm_providers/claude_code_cli_provider.py:274
+#: llm_providers/codex_cli_provider.py:271
+#: llm_providers/gemini_cli_provider.py:213
 msgid ""
 "Tens acesso às seguintes ações (ferramentas). Cada uma exige aprovação "
 "explícita do utilizador antes de ser executada — propor uma ação é "
@@ -474,6 +1119,8 @@ msgid ""
 msgstr ""
 
 #: llm_providers/claude_code_cli_provider.py:280
+#: llm_providers/codex_cli_provider.py:277
+#: llm_providers/gemini_cli_provider.py:219
 msgid ""
 "Para propor UMA ação, responde com um bloco de código com a etiqueta "
 "exata 'action' contendo um único objeto JSON com as chaves \"name\" e "
@@ -481,6 +1128,8 @@ msgid ""
 msgstr ""
 
 #: llm_providers/claude_code_cli_provider.py:286
+#: llm_providers/codex_cli_provider.py:283
+#: llm_providers/gemini_cli_provider.py:225
 msgid ""
 "Usa no máximo UM bloco 'action' por resposta. Se não precisares de "
 "nenhuma ferramenta, responde normalmente em texto, sem nenhum bloco "
@@ -488,10 +1137,14 @@ msgid ""
 msgstr ""
 
 #: llm_providers/claude_code_cli_provider.py:290
+#: llm_providers/codex_cli_provider.py:287
+#: llm_providers/gemini_cli_provider.py:229
 msgid "Ferramentas disponíveis:"
 msgstr ""
 
 #: llm_providers/claude_code_cli_provider.py:346
+#: llm_providers/codex_cli_provider.py:338
+#: llm_providers/gemini_cli_provider.py:281
 #, python-brace-format
 msgid "[Ficheiro anexado: {name} — caminho completo: {path}]"
 msgstr ""
@@ -613,6 +1266,98 @@ msgstr ""
 msgid "A API do Claude devolveu um erro: {err}"
 msgstr "The Claude API returned an error: {err}"
 
+#: llm_providers/codex_cli_provider.py:390
+#, fuzzy
+msgid "CLI 'codex' não encontrado. Instale com: npm install -g @openai/codex"
+msgstr "Package 'anthropic' not installed. Install it with: pip install anthropic"
+
+#: llm_providers/codex_cli_provider.py:397
+msgid "Sem conteúdo para enviar ao Codex CLI."
+msgstr ""
+
+#: llm_providers/codex_cli_provider.py:440
+#, python-brace-format
+msgid "CLI 'codex' não encontrado: {err}"
+msgstr ""
+
+#: llm_providers/codex_cli_provider.py:443
+#, python-brace-format
+msgid "O Codex CLI não respondeu em {timeout:.0f}s."
+msgstr ""
+
+#: llm_providers/codex_cli_provider.py:449
+#, python-brace-format
+msgid "Codex CLI terminou com erro (código {code})"
+msgstr ""
+
+#: llm_providers/codex_cli_provider.py:483
+msgid ""
+"Resposta inesperada do Codex CLI (nenhuma linha de saída --json é JSON "
+"válido)."
+msgstr ""
+
+#: llm_providers/codex_cli_provider.py:489
+#, python-brace-format
+msgid "Codex CLI reportou erro: {result}"
+msgstr ""
+
+#: llm_providers/codex_cli_provider.py:494
+msgid "Codex CLI não devolveu texto de resposta reconhecível nos eventos --json."
+msgstr ""
+
+#: llm_providers/gemini_cli_provider.py:333
+#, fuzzy
+msgid ""
+"CLI 'gemini' não encontrado. Instale com: npm install -g @google/gemini-"
+"cli"
+msgstr "Package 'anthropic' not installed. Install it with: pip install anthropic"
+
+#: llm_providers/gemini_cli_provider.py:340
+msgid "Sem conteúdo para enviar ao Gemini CLI."
+msgstr ""
+
+#: llm_providers/gemini_cli_provider.py:366
+#, python-brace-format
+msgid "CLI 'gemini' não encontrado: {err}"
+msgstr ""
+
+#: llm_providers/gemini_cli_provider.py:369
+#, python-brace-format
+msgid "O Gemini CLI não respondeu em {timeout:.0f}s."
+msgstr ""
+
+#: llm_providers/gemini_cli_provider.py:375
+msgid "Gemini CLI reportou um erro de input (código 42)"
+msgstr ""
+
+#: llm_providers/gemini_cli_provider.py:377
+msgid "Gemini CLI excedeu o limite de turnos (código 53)"
+msgstr ""
+
+#: llm_providers/gemini_cli_provider.py:379
+#, python-brace-format
+msgid "Gemini CLI terminou com erro (código {code})"
+msgstr ""
+
+#: llm_providers/gemini_cli_provider.py:390
+#, python-brace-format
+msgid "Resposta inesperada do Gemini CLI (saída não é JSON válido): {err}"
+msgstr ""
+
+#: llm_providers/gemini_cli_provider.py:397
+msgid "Resposta inesperada do Gemini CLI (JSON não é um objeto)."
+msgstr ""
+
+#: llm_providers/gemini_cli_provider.py:408
+#, python-brace-format
+msgid "Gemini CLI reportou erro: {result}"
+msgstr ""
+
+#: llm_providers/gemini_cli_provider.py:413
+#, fuzzy
+msgid "Gemini CLI não devolveu texto de resposta."
+msgstr "Gemini returned no response (empty candidate)."
+
 #: llm_providers/gemini_provider.py:258
 msgid ""
 "Pacote 'google-generativeai' não instalado. Instale com: pip install "
@@ -688,4 +1433,7 @@ msgstr "OpenAI response has invalid tool arguments: {err}"
 #: llm_providers/openai_provider.py:252
 msgid "Pedido recusado pelos filtros de conteúdo da OpenAI"
 msgstr "Request refused by OpenAI's content filters"
+
+#~ msgid "[custo] esta chamada: ${amount}"
+#~ msgstr "[cost] this call: ${amount}"
 
