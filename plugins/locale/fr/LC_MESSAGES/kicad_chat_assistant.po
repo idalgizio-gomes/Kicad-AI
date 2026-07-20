@@ -58,7 +58,7 @@ msgstr ""
 
 #: chat_gui.py:111
 msgid "Escolher modelo"
-msgstr ""
+msgstr "Choisir le modèle"
 
 #: chat_gui.py:131
 msgid ""
@@ -69,49 +69,49 @@ msgstr ""
 
 #: chat_gui.py:141
 msgid "Selecionar"
-msgstr ""
+msgstr "Sélectionner"
 
 #: chat_gui.py:144
 msgid "Cancelar"
-msgstr ""
+msgstr "Annuler"
 
 #: chat_gui.py:167
 msgid "Conversas"
-msgstr ""
+msgstr "Conversations"
 
 #: chat_gui.py:188 chat_gui.py:412 chat_gui.py:574
 msgid "Nova conversa"
-msgstr ""
+msgstr "Nouvelle conversation"
 
 #: chat_gui.py:192
 msgid "Abrir"
-msgstr ""
+msgstr "Ouvrir"
 
 #: chat_gui.py:197
 msgid "Eliminar"
-msgstr ""
+msgstr "Supprimer"
 
 #: chat_gui.py:205 chat_gui.py:312
 msgid "Fechar"
-msgstr ""
+msgstr "Fermer"
 
 #: chat_gui.py:248
 #, python-brace-format
 msgid "Eliminar a conversa '{title}'? Esta ação não pode ser desfeita."
-msgstr ""
+msgstr "Supprimer la conversation « {title} » ? Cette action est irréversible."
 
 #: chat_gui.py:251
 msgid "Eliminar conversa?"
-msgstr ""
+msgstr "Supprimer la conversation ?"
 
 #: chat_gui.py:279 chat_gui.py:419 chat_gui.py:577
 msgid "Sobre / Suporte"
-msgstr ""
+msgstr "À propos / Support"
 
 #: chat_gui.py:295
 #, python-brace-format
 msgid "Criado e mantido por {author}."
-msgstr ""
+msgstr "Créé et maintenu par {author}."
 
 #: chat_gui.py:302
 msgid ""
@@ -121,7 +121,7 @@ msgstr ""
 
 #: chat_gui.py:415 chat_gui.py:575
 msgid "Conversas..."
-msgstr ""
+msgstr "Conversations..."
 
 #: chat_gui.py:429 chat_gui.py:569
 msgid "Provedor:"
@@ -145,7 +145,7 @@ msgstr ""
 
 #: chat_gui.py:506 chat_gui.py:594
 msgid "Anexar ficheiro..."
-msgstr ""
+msgstr "Joindre un fichier..."
 
 #: chat_gui.py:525 chat_gui.py:572
 msgid "Enviar"
@@ -157,7 +157,7 @@ msgstr ""
 
 #: chat_gui.py:537 chat_gui.py:576
 msgid "Limite..."
-msgstr ""
+msgstr "Limite..."
 
 #: chat_gui.py:619
 #, python-brace-format
@@ -185,29 +185,31 @@ msgstr ""
 
 #: chat_gui.py:716
 msgid "Anexar ficheiro(s)"
-msgstr ""
+msgstr "Joindre un ou plusieurs fichiers"
 
 #: chat_gui.py:733
 #, python-brace-format
 msgid "[Anexos pendentes: {names}]"
-msgstr ""
+msgstr "[Pièces jointes en attente : {names}]"
 
 #: chat_gui.py:746
 msgid "Define o limite de custo desta sessão em USD (vazio = sem limite/alertas):"
 msgstr ""
+"Définissez la limite de coût de cette session en USD (vide = aucune "
+"limite/alerte) :"
 
 #: chat_gui.py:749
 msgid "Limite de custo"
-msgstr ""
+msgstr "Limite de coût"
 
 #: chat_gui.py:766
 #, python-brace-format
 msgid "Valor de limite inválido: '{value}'."
-msgstr ""
+msgstr "Valeur de limite invalide : « {value} »."
 
 #: chat_gui.py:818 chat_gui.py:831
 msgid "[info] Nova conversa iniciada."
-msgstr ""
+msgstr "[info] Nouvelle conversation démarrée."
 
 #: chat_gui.py:837
 #, python-brace-format
@@ -216,7 +218,7 @@ msgstr ""
 
 #: chat_gui.py:843
 msgid "[info] Conversa aberta."
-msgstr ""
+msgstr "[info] Conversation ouverte."
 
 #: chat_gui.py:868
 msgid "Nenhum fornecedor está configurado. Verifique a sua API key / instalação."

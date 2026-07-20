@@ -58,7 +58,7 @@ msgstr ""
 
 #: chat_gui.py:111
 msgid "Escolher modelo"
-msgstr ""
+msgstr "选择模型"
 
 #: chat_gui.py:131
 msgid ""
@@ -69,49 +69,49 @@ msgstr ""
 
 #: chat_gui.py:141
 msgid "Selecionar"
-msgstr ""
+msgstr "选择"
 
 #: chat_gui.py:144
 msgid "Cancelar"
-msgstr ""
+msgstr "取消"
 
 #: chat_gui.py:167
 msgid "Conversas"
-msgstr ""
+msgstr "对话"
 
 #: chat_gui.py:188 chat_gui.py:412 chat_gui.py:574
 msgid "Nova conversa"
-msgstr ""
+msgstr "新对话"
 
 #: chat_gui.py:192
 msgid "Abrir"
-msgstr ""
+msgstr "打开"
 
 #: chat_gui.py:197
 msgid "Eliminar"
-msgstr ""
+msgstr "删除"
 
 #: chat_gui.py:205 chat_gui.py:312
 msgid "Fechar"
-msgstr ""
+msgstr "关闭"
 
 #: chat_gui.py:248
 #, python-brace-format
 msgid "Eliminar a conversa '{title}'? Esta ação não pode ser desfeita."
-msgstr ""
+msgstr "删除对话“{title}”？此操作无法撤销。"
 
 #: chat_gui.py:251
 msgid "Eliminar conversa?"
-msgstr ""
+msgstr "删除对话？"
 
 #: chat_gui.py:279 chat_gui.py:419 chat_gui.py:577
 msgid "Sobre / Suporte"
-msgstr ""
+msgstr "关于/支持"
 
 #: chat_gui.py:295
 #, python-brace-format
 msgid "Criado e mantido por {author}."
-msgstr ""
+msgstr "由 {author} 创建和维护。"
 
 #: chat_gui.py:302
 msgid ""
@@ -121,7 +121,7 @@ msgstr ""
 
 #: chat_gui.py:415 chat_gui.py:575
 msgid "Conversas..."
-msgstr ""
+msgstr "对话..."
 
 #: chat_gui.py:429 chat_gui.py:569
 msgid "Provedor:"
@@ -145,7 +145,7 @@ msgstr ""
 
 #: chat_gui.py:506 chat_gui.py:594
 msgid "Anexar ficheiro..."
-msgstr ""
+msgstr "附加文件..."
 
 #: chat_gui.py:525 chat_gui.py:572
 msgid "Enviar"
@@ -157,7 +157,7 @@ msgstr ""
 
 #: chat_gui.py:537 chat_gui.py:576
 msgid "Limite..."
-msgstr ""
+msgstr "限额..."
 
 #: chat_gui.py:619
 #, python-brace-format
@@ -185,29 +185,29 @@ msgstr ""
 
 #: chat_gui.py:716
 msgid "Anexar ficheiro(s)"
-msgstr ""
+msgstr "附加文件"
 
 #: chat_gui.py:733
 #, python-brace-format
 msgid "[Anexos pendentes: {names}]"
-msgstr ""
+msgstr "[待发送附件：{names}]"
 
 #: chat_gui.py:746
 msgid "Define o limite de custo desta sessão em USD (vazio = sem limite/alertas):"
-msgstr ""
+msgstr "设置本次会话的费用上限（美元，留空表示不限制/不提醒）："
 
 #: chat_gui.py:749
 msgid "Limite de custo"
-msgstr ""
+msgstr "费用上限"
 
 #: chat_gui.py:766
 #, python-brace-format
 msgid "Valor de limite inválido: '{value}'."
-msgstr ""
+msgstr "限额值无效：“{value}”。"
 
 #: chat_gui.py:818 chat_gui.py:831
 msgid "[info] Nova conversa iniciada."
-msgstr ""
+msgstr "[信息] 已开始新对话。"
 
 #: chat_gui.py:837
 #, python-brace-format
@@ -216,7 +216,7 @@ msgstr ""
 
 #: chat_gui.py:843
 msgid "[info] Conversa aberta."
-msgstr ""
+msgstr "[信息] 已打开对话。"
 
 #: chat_gui.py:868
 msgid "Nenhum fornecedor está configurado. Verifique a sua API key / instalação."
