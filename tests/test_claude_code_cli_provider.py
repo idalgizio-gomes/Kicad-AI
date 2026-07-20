@@ -144,6 +144,27 @@ def test_send_invokes_cli_with_expected_args(cli_present, monkeypatch):
     assert kwargs["timeout"] == ccp._TIMEOUT_S
 
 
+def test_send_passes_model_flag_when_set(cli_present, monkeypatch):
+    payload = {"is_error": False, "result": "ok"}
+    run_mock = mock.MagicMock(return_value=_fake_run(stdout=json.dumps(payload)))
+    monkeypatch.setattr(ccp.subprocess, "run", run_mock)
+    provider = ccp.ClaudeCodeCLIProvider(api_key=None, model="opus")
+    provider.send([ChatMessage(role="user", content="x")])
+    cmd = run_mock.call_args[0][0]
+    assert "--model" in cmd
+    assert cmd[cmd.index("--model") + 1] == "opus"
+
+
+def test_send_omits_model_flag_by_default(cli_present, monkeypatch):
+    payload = {"is_error": False, "result": "ok"}
+    run_mock = mock.MagicMock(return_value=_fake_run(stdout=json.dumps(payload)))
+    monkeypatch.setattr(ccp.subprocess, "run", run_mock)
+    provider = ccp.ClaudeCodeCLIProvider(api_key=None)
+    provider.send([ChatMessage(role="user", content="x")])
+    cmd = run_mock.call_args[0][0]
+    assert "--model" not in cmd
+
+
 def test_send_ignores_tools_argument(cli_present, monkeypatch):
     """HONEST LIMITATION contract: `tools` is accepted (interface parity with
     every other provider) but never reaches the CLI invocation — this

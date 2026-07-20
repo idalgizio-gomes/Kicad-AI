@@ -74,8 +74,13 @@ def _show_error(message: str, title: str = "KiCad Chat Assistant") -> None:
         print(f"[KiCad Chat Assistant] {title}: {message}")
 
 
-def provider_factory(provider_id: str):
+def provider_factory(provider_id: str, model: str | None = None):
     """Build a configured LLMProvider for ``provider_id``.
+
+    ``model``, when given, overrides the config file's model for this one
+    instance — this is how the GUI's model field (chat_gui.py) works, and it
+    applies to every provider generically (each one already reads its own
+    ``self.model`` when calling its API/CLI).
 
     Never raises: a missing pip package or an invalid provider id (both
     reported as ``ProviderError`` by ``create_provider``) is shown via
@@ -87,7 +92,7 @@ def provider_factory(provider_id: str):
     """
     cfg = load_config()
     try:
-        provider = create_provider(provider_id, cfg)
+        provider = create_provider(provider_id, cfg, model_override=model)
     except ProviderError as exc:
         _show_error(str(exc))
         return None

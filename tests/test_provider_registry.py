@@ -118,6 +118,24 @@ def test_create_provider_claude_cli_returns_claude_code_cli_provider():
     assert provider.display_name == "Claude Code (subscrição local)"
 
 
+def test_create_provider_model_override_wins_over_config():
+    cfg = {"providers": {"claude_cli": {"model": "from-config"}}}
+    provider = create_provider("claude_cli", cfg, model_override="from-override")
+    assert provider.model == "from-override"
+
+
+def test_create_provider_model_override_applies_to_any_provider(monkeypatch):
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    provider = create_provider("chatgpt", {}, model_override="gpt-9000")
+    assert provider.model == "gpt-9000"
+
+
+def test_create_provider_no_override_falls_back_to_config():
+    cfg = {"providers": {"claude_cli": {"model": "from-config"}}}
+    provider = create_provider("claude_cli", cfg)
+    assert provider.model == "from-config"
+
+
 def test_create_provider_chatgpt_returns_openai_provider(monkeypatch):
     monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
     provider = create_provider("chatgpt", {})

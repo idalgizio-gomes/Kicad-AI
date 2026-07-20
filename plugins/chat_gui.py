@@ -103,7 +103,24 @@ class ChatDialog(wx.Dialog):
         if self._provider_ids:
             self._provider_choice.SetSelection(0)
         self._provider_choice.Bind(wx.EVT_CHOICE, self._on_provider_change)
-        top.Add(self._provider_choice, 0, wx.ALIGN_CENTER_VERTICAL)
+        top.Add(self._provider_choice, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 12)
+
+        # Model override — generic across every provider (each one already
+        # reads its own self.model). Empty means "provider's own default".
+        # Applied on Enter so a typo doesn't recreate the provider on every
+        # keystroke.
+        top.Add(
+            wx.StaticText(panel, label=_("Model:")),
+            0,
+            wx.ALIGN_CENTER_VERTICAL | wx.RIGHT,
+            6,
+        )
+        self._model_input = wx.TextCtrl(
+            panel, style=wx.TE_PROCESS_ENTER, size=(160, -1)
+        )
+        self._model_input.SetHint(_("(provider default)"))
+        self._model_input.Bind(wx.EVT_TEXT_ENTER, self._on_model_change)
+        top.Add(self._model_input, 0, wx.ALIGN_CENTER_VERTICAL)
         outer.Add(top, 0, wx.EXPAND | wx.ALL, 8)
 
         # History (read-only, rich so we can visually distinguish speakers).
@@ -131,13 +148,13 @@ class ChatDialog(wx.Dialog):
         self._input.SetFocus()
 
     # -------------------------------------------------------- provider mgmt ---
-    def _create_provider(self, provider_id):
+    def _create_provider(self, provider_id, model=None):
         """Instantiate the provider for ``provider_id`` via the injected
         factory. Any failure is reported in the history, never raised."""
         if not provider_id:
             return
         try:
-            self._provider = self._provider_factory(provider_id)
+            self._provider = self._provider_factory(provider_id, model)
             self._provider_id = provider_id
         except Exception as exc:  # ProviderError or anything else
             self._provider = None
@@ -155,12 +172,30 @@ class ChatDialog(wx.Dialog):
         provider_id = self._provider_ids[idx]
         if provider_id == self._provider_id and self._provider is not None:
             return
+        # Model namespaces don't overlap between providers (e.g. "sonnet"
+        # means nothing to Gemini) — clear the field on switch rather than
+        # silently carrying over a value that would just error out.
+        self._model_input.SetValue("")
         # Switching keeps the existing message history.
         self._create_provider(provider_id)
         if self._provider is not None:
             self._set_status(
                 _("Switched to {name}.").format(
                     name=self._provider_labels.get(provider_id, provider_id)
+                )
+            )
+
+    def _on_model_change(self, _event):
+        """Recreate the CURRENT provider with the typed model override.
+        Empty text reverts to the provider's own default."""
+        if self._provider_id is None:
+            return
+        model = self._model_input.GetValue().strip() or None
+        self._create_provider(self._provider_id, model)
+        if self._provider is not None:
+            self._set_status(
+                _("Model set to {model}.").format(
+                    model=model or _("(provider default)")
                 )
             )
 

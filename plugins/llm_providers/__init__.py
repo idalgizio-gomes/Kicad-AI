@@ -115,7 +115,9 @@ def resolve_api_key(provider_id: str, cfg: dict) -> str | None:
     return None
 
 
-def create_provider(provider_id: str, cfg: dict | None = None) -> LLMProvider:
+def create_provider(
+    provider_id: str, cfg: dict | None = None, model_override: str | None = None
+) -> LLMProvider:
     """Factory: build a configured LLMProvider instance for provider_id.
 
     Imports the concrete provider module (and its SDK) lazily, so that a
@@ -123,6 +125,11 @@ def create_provider(provider_id: str, cfg: dict | None = None) -> LLMProvider:
     ProviderError (never lets ImportError / raw exceptions escape) for:
       - an unknown provider_id
       - a missing pip dependency (with the exact `pip install ...` command)
+
+    ``model_override``, when given, wins over the config file's
+    ``providers.<id>.model`` — this is how the GUI's live model switcher
+    (chat_gui.py) rebuilds a provider with a different model without
+    touching the persisted config.
     """
     if cfg is None:
         cfg = load_config()
@@ -133,7 +140,9 @@ def create_provider(provider_id: str, cfg: dict | None = None) -> LLMProvider:
     api_key = resolve_api_key(provider_id, cfg)
     providers_cfg = cfg.get("providers", {}) if isinstance(cfg, dict) else {}
     provider_cfg = providers_cfg.get(provider_id, {}) if isinstance(providers_cfg, dict) else {}
-    model = provider_cfg.get("model") if isinstance(provider_cfg, dict) else None
+    model = model_override or (
+        provider_cfg.get("model") if isinstance(provider_cfg, dict) else None
+    )
 
     try:
         if provider_id == "claude":

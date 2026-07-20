@@ -154,8 +154,13 @@ class ClaudeCodeCLIProvider(LLMProvider):
             # plain-text output, which then failed JSON parsing below).
             # stdin has no such parsing step and is the documented way to
             # feed longer/structured input to headless mode.
+            args = [cli_path, "-p", "--output-format", "json"]
+            if self.model:
+                # Accepts an alias ("opus", "sonnet", "fable", "haiku") or a
+                # full model id — passed through as-is, the CLI validates it.
+                args += ["--model", self.model]
             result = subprocess.run(
-                [cli_path, "-p", "--output-format", "json"],
+                args,
                 input=prompt,
                 capture_output=True,
                 text=True,
