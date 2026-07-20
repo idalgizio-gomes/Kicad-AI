@@ -184,10 +184,24 @@ class ChatDialog(wx.Dialog):
         self._set_busy(True)
         self._set_status(_("Thinking..."))
 
-        worker = threading.Thread(target=self._run_worker, daemon=True)
+        # Captured BEFORE the worker thread runs, on the main thread, while
+        # self._messages still holds only what's rendered so far. Must NOT
+        # be recomputed inside _finish_turn: run_tool_loop mutates this same
+        # list object in place (it receives self._messages by reference, not
+        # a copy), so by the time _finish_turn executes — asynchronously, via
+        # wx.CallAfter, after the worker has already finished — self._messages
+        # already equals updated_messages. Recomputing len(self._messages)
+        # there always yields the post-mutation length, making the "new
+        # messages" slice empty on every turn regardless of provider or
+        # content — the bug that made every successful reply render nothing.
+        pre_turn_len = len(self._messages)
+
+        worker = threading.Thread(
+            target=self._run_worker, args=(pre_turn_len,), daemon=True
+        )
         worker.start()
 
-    def _run_worker(self):
+    def _run_worker(self, pre_turn_len):
         """Runs on a background thread. Never touches wx directly except via
         CallAfter."""
         try:
@@ -199,17 +213,18 @@ class ChatDialog(wx.Dialog):
                 self._on_loop_update,
                 8,
             )
-            wx.CallAfter(self._finish_turn, updated)
+            wx.CallAfter(self._finish_turn, updated, pre_turn_len)
         except Exception as exc:  # ProviderError or any unexpected failure
             wx.CallAfter(self._append_error, str(exc))
             wx.CallAfter(self._set_busy, False)
             wx.CallAfter(self._set_status, _("Error."))
 
-    def _finish_turn(self, updated_messages):
+    def _finish_turn(self, updated_messages, pre_turn_len):
         """Main-thread: reconcile the message list and render new assistant /
         tool output produced during the turn."""
-        # Render only the messages appended by the tool loop (assistant/tool).
-        old_len = len(self._messages)
+        # Render only the messages appended by the tool loop (assistant/tool)
+        # — i.e. everything from the length captured before the turn started.
+        old_len = pre_turn_len
         self._messages = updated_messages
         for msg in updated_messages[old_len:]:
             self._render_message(msg)
