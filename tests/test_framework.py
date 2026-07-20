@@ -232,6 +232,24 @@ def test_loop_max_rounds_guard():
     assert "Limite de 3" in out[-1].content
 
 
+def test_cost_usd_propagates_into_assistant_meta():
+    reg = ActionRegistry()
+    provider = ScriptedProvider(
+        [ChatResponse(content="olá", stop_reason="end", cost_usd=0.0776229)]
+    )
+    messages = [ChatMessage(role="user", content="oi")]
+    out = run_tool_loop(provider, reg, messages, _yes)
+    assert out[-1].meta.get("cost_usd") == 0.0776229
+
+
+def test_no_cost_usd_leaves_meta_empty():
+    reg = ActionRegistry()
+    provider = ScriptedProvider([ChatResponse(content="olá", stop_reason="end")])
+    messages = [ChatMessage(role="user", content="oi")]
+    out = run_tool_loop(provider, reg, messages, _yes)
+    assert out[-1].meta == {}
+
+
 def test_on_update_called():
     seen = []
     reg = ActionRegistry()

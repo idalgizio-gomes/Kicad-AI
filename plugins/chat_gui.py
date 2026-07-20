@@ -278,9 +278,22 @@ class ChatDialog(wx.Dialog):
         if role == "assistant":
             if content.strip():
                 self._append_line(_("Assistant:") + " " + content.strip())
+            elif not tool_calls:
+                # Never render nothing at all for a completed turn — an
+                # empty reply with no tool calls is a real (if rare)
+                # provider outcome, not a bug in the GUI, and staying
+                # silent here previously made it indistinguishable from
+                # the turn never having happened.
+                self._append_line(_("[warning] Empty response from provider."))
             for tc in tool_calls:
                 self._append_line(
                     _("[action] proposing: {name}").format(name=tc.name)
+                )
+            meta = getattr(msg, "meta", None) or {}
+            cost_usd = meta.get("cost_usd")
+            if isinstance(cost_usd, (int, float)):
+                self._append_line(
+                    _("[cost] this call: ${amount}").format(amount=f"{cost_usd:.4f}")
                 )
         elif role == "tool":
             preview = content.strip()

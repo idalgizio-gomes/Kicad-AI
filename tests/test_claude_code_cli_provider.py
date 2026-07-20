@@ -212,6 +212,24 @@ def test_send_timeout_raises(cli_present, monkeypatch):
     assert "180" in str(excinfo.value)
 
 
+def test_send_populates_cost_usd(cli_present, monkeypatch):
+    payload = {"is_error": False, "result": "ok", "total_cost_usd": 0.0776229}
+    run_mock = mock.MagicMock(return_value=_fake_run(stdout=json.dumps(payload)))
+    monkeypatch.setattr(ccp.subprocess, "run", run_mock)
+    provider = ccp.ClaudeCodeCLIProvider(api_key=None)
+    resp = provider.send([ChatMessage(role="user", content="x")])
+    assert resp.cost_usd == 0.0776229
+
+
+def test_send_missing_cost_usd_is_none(cli_present, monkeypatch):
+    payload = {"is_error": False, "result": "ok"}
+    run_mock = mock.MagicMock(return_value=_fake_run(stdout=json.dumps(payload)))
+    monkeypatch.setattr(ccp.subprocess, "run", run_mock)
+    provider = ccp.ClaudeCodeCLIProvider(api_key=None)
+    resp = provider.send([ChatMessage(role="user", content="x")])
+    assert resp.cost_usd is None
+
+
 def test_send_raw_payload_preserved(cli_present, monkeypatch):
     payload = {"is_error": False, "result": "ok", "total_cost_usd": 0.01}
     run_mock = mock.MagicMock(return_value=_fake_run(stdout=json.dumps(payload)))

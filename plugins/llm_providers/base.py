@@ -26,6 +26,10 @@ class ChatMessage:
     content: str
     tool_calls: list[ToolCall] = field(default_factory=list)
     tool_call_id: str | None = None  # set on role="tool" messages (the result of a call)
+    # Provider-specific, display-only extras (e.g. {"cost_usd": 0.08} from the
+    # Claude Code CLI provider). Never read by request-building code — only
+    # by the GUI, so a provider that doesn't populate it changes nothing.
+    meta: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -42,6 +46,11 @@ class ChatResponse:
     raw: Any = None
     stop_reason: str = "end"  # "end" | "tool_use" | "error"
     error: str | None = None
+    # Real per-call cost in USD, when the provider can report it (currently
+    # only ClaudeCodeCLIProvider, from the CLI's own total_cost_usd). None
+    # for providers that don't expose this (the API-key providers bill via
+    # token counts the plugin doesn't meter itself).
+    cost_usd: float | None = None
 
 
 class ProviderError(Exception):

@@ -158,11 +158,15 @@ def run_tool_loop(
     for _ in range(max_rounds):
         response: ChatResponse = provider.send(messages, registry.specs())
 
+        meta = {}
+        if response.cost_usd is not None:
+            meta["cost_usd"] = response.cost_usd
         messages.append(
             ChatMessage(
                 role="assistant",
                 content=response.content or "",
                 tool_calls=list(response.tool_calls),
+                meta=meta,
             )
         )
         if response.content:

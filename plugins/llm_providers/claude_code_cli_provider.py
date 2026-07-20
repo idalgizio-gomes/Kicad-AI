@@ -209,4 +209,11 @@ class ClaudeCodeCLIProvider(LLMProvider):
         if not isinstance(text, str):
             raise ProviderError("Claude Code CLI não devolveu texto de resposta.")
 
-        return ChatResponse(content=text, tool_calls=[], raw=payload, stop_reason="end")
+        cost_usd = payload.get("total_cost_usd")
+        return ChatResponse(
+            content=text,
+            tool_calls=[],
+            raw=payload,
+            stop_reason="end",
+            cost_usd=cost_usd if isinstance(cost_usd, (int, float)) else None,
+        )
