@@ -82,7 +82,7 @@ _LANGUAGE_NAMES = {
 _TOOL_RESULT_PREVIEW = 500
 
 
-def _make_message(role, content, tool_calls=None, tool_call_id=None):
+def _make_message(role, content, tool_calls=None, tool_call_id=None, attachments=None):
     """Build a ChatMessage, importing the dataclass lazily so this module does
     not depend on llm_providers at import time (keeps the GUI decoupled)."""
     try:
@@ -94,6 +94,7 @@ def _make_message(role, content, tool_calls=None, tool_call_id=None):
         content=content,
         tool_calls=tool_calls or [],
         tool_call_id=tool_call_id,
+        attachments=list(attachments) if attachments else [],
     )
 
 
@@ -323,6 +324,19 @@ class ChatDialog(wx.Dialog):
     # _check_cost_alerts, not repeated on every subsequent turn.
     _COST_ALERT_THRESHOLDS = (0.5, 0.8, 1.0)
 
+    # (raw pt-source label, real CLI permission-mode value) — labels are
+    # wrapped in _() only at the point of use (class-attribute evaluation
+    # happens at import time, before setup_i18n() has necessarily run —
+    # same reasoning as PROVIDER_LABELS in llm_providers/__init__.py).
+    # Values match claude_code_cli_provider.py's PERMISSION_MODE_* constants
+    # exactly (not imported directly — chat_gui.py stays decoupled from any
+    # specific provider module, see _apply_permission_mode_to_provider).
+    _PERMISSION_MODE_OPTIONS = [
+        ("Manual (nunca aprova sozinho)", "manual"),
+        ("Planeamento (descreve, não executa)", "plan"),
+        ("Automático (edita ficheiros sem perguntar)", "acceptEdits"),
+    ]
+
     def __init__(
         self,
         parent,
@@ -378,6 +392,11 @@ class ChatDialog(wx.Dialog):
         self._cost_alert_limit_usd = cost_alert_limit_usd
         self._session_cost_usd = 0.0
         self._cost_alert_hit = set()
+
+        # Files staged for the NEXT message only (see _on_attach_file /
+        # _on_send) — cleared once the message that carries them is sent,
+        # same lifecycle as the text input box itself.
+        self._pending_attachments = []
 
         self._build_ui()
         self._create_provider(self._provider_id)
@@ -467,6 +486,30 @@ class ChatDialog(wx.Dialog):
         top.Add(self._lang_choice, 0, wx.ALIGN_CENTER_VERTICAL)
         outer.Add(top, 0, wx.EXPAND | wx.ALL, 8)
 
+        # Second row: permission mode (Claude Code CLI provider only — file
+        # read/write/navigate access, see claude_code_cli_provider.py's
+        # PERMISSION_MODE_* constants for exactly what each does) and
+        # attaching a file to the next message sent (any type — see
+        # attachments.py). Disabled/hidden entirely for providers that
+        # don't have a `permission_mode` attribute (everything except
+        # claude_cli) — never shown as a no-op control for those.
+        tools_row = wx.BoxSizer(wx.HORIZONTAL)
+        self._perm_mode_label = wx.StaticText(panel, label=_("Modo:"))
+        tools_row.Add(self._perm_mode_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
+        self._perm_mode_choice = wx.Choice(
+            panel, choices=[_(label) for label, _value in self._PERMISSION_MODE_OPTIONS]
+        )
+        self._perm_mode_choice.SetSelection(0)
+        self._perm_mode_choice.Bind(wx.EVT_CHOICE, self._on_permission_mode_change)
+        tools_row.Add(self._perm_mode_choice, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 12)
+
+        self._attach_btn = wx.Button(panel, label=_("Anexar ficheiro..."))
+        self._attach_btn.Bind(wx.EVT_BUTTON, self._on_attach_file)
+        tools_row.Add(self._attach_btn, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
+        self._attachment_label = wx.StaticText(panel, label="")
+        tools_row.Add(self._attachment_label, 0, wx.ALIGN_CENTER_VERTICAL)
+        outer.Add(tools_row, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
+
         # History (read-only, rich so we can visually distinguish speakers).
         self._history = wx.TextCtrl(
             panel,
@@ -543,6 +586,14 @@ class ChatDialog(wx.Dialog):
         if selection != wx.NOT_FOUND:
             self._provider_choice.SetSelection(selection)
 
+        self._perm_mode_label.SetLabel(_("Modo:"))
+        perm_selection = self._perm_mode_choice.GetSelection()
+        self._perm_mode_choice.Set([_(label) for label, _value in self._PERMISSION_MODE_OPTIONS])
+        if perm_selection != wx.NOT_FOUND:
+            self._perm_mode_choice.SetSelection(perm_selection)
+        self._attach_btn.SetLabel(_("Anexar ficheiro..."))
+        self._update_attachment_label()
+
         # Don't stomp a genuinely busy status ("A pensar...") mid-turn — the
         # next turn will render fresh text anyway. Idle state is the normal
         # time to switch, so re-render it explicitly.
@@ -561,6 +612,7 @@ class ChatDialog(wx.Dialog):
         try:
             self._provider = self._provider_factory(provider_id, model)
             self._provider_id = provider_id
+            self._apply_permission_mode_to_provider()
         except Exception as exc:  # ProviderError or anything else
             self._provider = None
             self._append_error(
@@ -569,6 +621,28 @@ class ChatDialog(wx.Dialog):
                     err=exc,
                 )
             )
+
+    def _apply_permission_mode_to_provider(self):
+        """Sets self._provider.permission_mode from the "Modo:" selector,
+        and shows/hides that whole row — it only means anything for
+        providers that HAVE this attribute (currently just the Claude Code
+        CLI provider); shown as a no-op control for any other provider
+        would just be confusing."""
+        has_permission_mode = hasattr(self._provider, "permission_mode")
+        for widget in (self._perm_mode_label, self._perm_mode_choice):
+            widget.Show(has_permission_mode)
+        if has_permission_mode:
+            idx = self._perm_mode_choice.GetSelection()
+            if idx != wx.NOT_FOUND and idx < len(self._PERMISSION_MODE_OPTIONS):
+                self._provider.permission_mode = self._PERMISSION_MODE_OPTIONS[idx][1]
+        self.Layout()
+
+    def _on_permission_mode_change(self, _event):
+        self._apply_permission_mode_to_provider()
+        idx = self._perm_mode_choice.GetSelection()
+        if idx != wx.NOT_FOUND and idx < len(self._PERMISSION_MODE_OPTIONS):
+            label = _(self._PERMISSION_MODE_OPTIONS[idx][0])
+            self._set_status(_("Modo definido como: {mode}").format(mode=label))
 
     def _on_provider_change(self, _event):
         idx = self._provider_choice.GetSelection()
@@ -624,6 +698,41 @@ class ChatDialog(wx.Dialog):
             self._model_input.SetValue(dlg.selected_model)
             self._on_model_change(None)
         dlg.Destroy()
+
+    # -------------------------------------------------------------- attachments ---
+    def _on_attach_file(self, _event):
+        """Stages one or more files (ANY type — see attachments.py) to be
+        sent with the NEXT message. `wx.FileDialog` with no wildcard filter,
+        deliberately — "qualquer tipo de ficheiro" means no type is excluded
+        at the picker level; classification (and graceful degradation for
+        genuinely unsupported binaries) happens per-provider at send time."""
+        try:
+            from .llm_providers.base import Attachment  # type: ignore
+        except ImportError:  # pragma: no cover - fallback for test/standalone use
+            from llm_providers.base import Attachment  # type: ignore
+
+        dlg = wx.FileDialog(
+            self,
+            message=_("Anexar ficheiro(s)"),
+            style=wx.FD_OPEN | wx.FD_MULTIPLE | wx.FD_FILE_MUST_EXIST,
+        )
+        if dlg.ShowModal() == wx.ID_OK:
+            for path in dlg.GetPaths():
+                self._pending_attachments.append(
+                    Attachment(path=path, name=path.rsplit("\\", 1)[-1].rsplit("/", 1)[-1])
+                )
+            self._update_attachment_label()
+        dlg.Destroy()
+
+    def _update_attachment_label(self):
+        if not self._pending_attachments:
+            self._attachment_label.SetLabel("")
+            return
+        names = ", ".join(a.name for a in self._pending_attachments)
+        self._attachment_label.SetLabel(
+            _("[Anexos pendentes: {names}]").format(names=names)
+        )
+        self.Layout()
 
     # ------------------------------------------------------------ cost limit ---
     def _on_set_cost_limit(self, _event):
@@ -694,6 +803,10 @@ class ChatDialog(wx.Dialog):
             self._render_message(msg)
         self._recompute_session_cost()
         self._cost_alert_hit = set()
+        # An unsent attachment belongs to the draft that's being abandoned,
+        # not to whatever conversation is being switched to.
+        self._pending_attachments = []
+        self._update_attachment_label()
         self._set_status(_("Pronto."))
 
     def _on_new_conversation(self, _event):
@@ -745,7 +858,10 @@ class ChatDialog(wx.Dialog):
         if self._busy:
             return
         text = self._input.GetValue().strip()
-        if not text:
+        # An attach-only message (no typed text) is legitimate - "here's a
+        # file" doesn't need accompanying text - so this only blocks when
+        # there is truly nothing to send.
+        if not text and not self._pending_attachments:
             return
         if self._provider is None:
             self._append_error(
@@ -754,7 +870,9 @@ class ChatDialog(wx.Dialog):
             return
 
         self._input.SetValue("")
-        user_msg = _make_message("user", text)
+        user_msg = _make_message("user", text, attachments=self._pending_attachments)
+        self._pending_attachments = []
+        self._update_attachment_label()
         self._render_message(user_msg)
         self._messages.append(user_msg)
 
@@ -949,10 +1067,15 @@ class ChatDialog(wx.Dialog):
         role = getattr(msg, "role", "")
         content = getattr(msg, "content", "") or ""
         tool_calls = getattr(msg, "tool_calls", None) or []
+        attachments = getattr(msg, "attachments", None) or []
 
         if role == "user":
             if content.strip():
                 self._append_line(_("Você:") + " " + content.strip())
+            for attachment in attachments:
+                self._append_line(
+                    _("[anexo] {name}").format(name=getattr(attachment, "name", "?"))
+                )
         elif role == "assistant":
             if content.strip():
                 self._append_line(_("Assistente:") + " " + content.strip())

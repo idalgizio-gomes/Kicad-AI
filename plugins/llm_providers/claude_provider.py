@@ -90,6 +90,63 @@ class ClaudeProvider(LLMProvider):
     # Request mapping (plugin -> Anthropic)
     # ------------------------------------------------------------------ #
     @staticmethod
+    def _attachment_blocks(path: str) -> list[dict[str, Any]]:
+        """Classifies the file at `path` and translates it into Anthropic
+        Messages API content blocks. Images and PDFs are natively
+        supported (Claude's API accepts both as base64 content blocks);
+        text-decodable files are inlined as a text block with a clear
+        "attached file" header; anything unsupported (or unreadable)
+        becomes a plain text note explaining why, so the model — and the
+        user reading the conversation — always sees SOMETHING happened
+        with the attachment, never a silent gap."""
+        try:
+            from ..attachments import classify_attachment
+        except ImportError:  # pragma: no cover - fallback for flat imports
+            from attachments import classify_attachment  # type: ignore
+
+        classified = classify_attachment(path)
+
+        if classified.kind == "image":
+            return [
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": classified.media_type,
+                        "data": classified.data_b64,
+                    },
+                }
+            ]
+        if classified.kind == "pdf":
+            return [
+                {
+                    "type": "document",
+                    "source": {
+                        "type": "base64",
+                        "media_type": "application/pdf",
+                        "data": classified.data_b64,
+                    },
+                }
+            ]
+        if classified.kind == "text":
+            header = _("--- Ficheiro anexado: {name} ---").format(name=classified.name)
+            body = classified.text or ""
+            if classified.truncated:
+                body += "\n" + _("[... ficheiro truncado ...]")
+            return [{"type": "text", "text": f"{header}\n{body}"}]
+
+        # "unsupported" or "error"
+        return [
+            {
+                "type": "text",
+                "text": _("[Anexo '{name}' não pôde ser incluído: {reason}]").format(
+                    name=classified.name,
+                    reason=classified.reason or _("motivo desconhecido"),
+                ),
+            }
+        ]
+
+    @staticmethod
     def _build_request(
         messages: list[ChatMessage], tools: list[ToolSpec] | None
     ) -> dict[str, Any]:
@@ -157,8 +214,21 @@ class ClaudeProvider(LLMProvider):
                     )
                 continue
 
-            # Default: treat as a user message.
-            api_messages.append({"role": "user", "content": msg.content})
+            # Default: treat as a user message. Attachments (if any) turn
+            # this into a content-block list instead of a plain string —
+            # images/PDFs go in as native blocks, everything else degrades
+            # per _attachment_blocks() (see its docstring).
+            if msg.attachments:
+                content_blocks: list[dict[str, Any]] = []
+                if msg.content:
+                    content_blocks.append({"type": "text", "text": msg.content})
+                for attachment in msg.attachments:
+                    content_blocks.extend(
+                        ClaudeProvider._attachment_blocks(attachment.path)
+                    )
+                api_messages.append({"role": "user", "content": content_blocks})
+            else:
+                api_messages.append({"role": "user", "content": msg.content})
 
         request: dict[str, Any] = {"messages": api_messages}
         if system_parts:

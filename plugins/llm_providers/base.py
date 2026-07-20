@@ -21,6 +21,22 @@ class ToolCall:
 
 
 @dataclass
+class Attachment:
+    """A file the user attached to a message — any type, per the plugin's
+    "anexar qualquer tipo de ficheiro" requirement. What actually reaches
+    the model depends on the provider AND the file's real content (see
+    attachments.py::classify_attachment): images and PDFs go in natively
+    where the provider's API supports it, text-decodable files are inlined
+    as text, anything else degrades to a plain "could not include this
+    file" note rather than silently dropping it or sending garbage bytes.
+    """
+
+    path: str
+    name: str  # display name (basename) - kept separate from `path` so the
+    # GUI/history never has to leak the user's full local filesystem layout
+
+
+@dataclass
 class ChatMessage:
     role: str  # "user" | "assistant" | "system" | "tool"
     content: str
@@ -30,6 +46,11 @@ class ChatMessage:
     # Claude Code CLI provider). Never read by request-building code — only
     # by the GUI, so a provider that doesn't populate it changes nothing.
     meta: dict = field(default_factory=dict)
+    # Files the user attached to THIS message (role="user" only, in
+    # practice — nothing stops another role from carrying one, but nothing
+    # populates it either). Empty for every message that doesn't have one,
+    # so existing providers/tests that never set this are unaffected.
+    attachments: list[Attachment] = field(default_factory=list)
 
 
 @dataclass

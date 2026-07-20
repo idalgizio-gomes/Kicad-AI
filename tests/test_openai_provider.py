@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from llm_providers.base import ChatMessage, ProviderError, ToolCall, ToolSpec
+from llm_providers.base import Attachment, ChatMessage, ProviderError, ToolCall, ToolSpec
 import llm_providers.openai_provider as openai_provider
 from llm_providers.openai_provider import OpenAIProvider
 
@@ -71,6 +71,58 @@ def test_list_models_empty_on_api_error(monkeypatch):
 
     provider = OpenAIProvider(api_key="abc")
     assert provider.list_models() == []
+
+
+def test_image_attachment_becomes_image_url_part(monkeypatch, tmp_path):
+    fake_openai = MagicMock()
+    fake_client = MagicMock()
+    fake_openai.OpenAI.return_value = fake_client
+    fake_client.chat.completions.create.return_value = make_response(content="ok")
+    monkeypatch.setattr(openai_provider, "openai", fake_openai)
+
+    img_path = tmp_path / "board.png"
+    img_path.write_bytes(b"\x89PNG\r\n\x1a\nfake")
+
+    provider = OpenAIProvider(api_key="abc")
+    provider.send(
+        [
+            ChatMessage(
+                role="user",
+                content="vê isto",
+                attachments=[Attachment(path=str(img_path), name="board.png")],
+            )
+        ]
+    )
+    sent = fake_client.chat.completions.create.call_args.kwargs["messages"][0]
+    assert sent["content"][0] == {"type": "text", "text": "vê isto"}
+    assert sent["content"][1]["type"] == "image_url"
+    assert sent["content"][1]["image_url"]["url"].startswith("data:image/png;base64,")
+
+
+def test_pdf_attachment_degrades_to_explanatory_text(monkeypatch, tmp_path):
+    fake_openai = MagicMock()
+    fake_client = MagicMock()
+    fake_openai.OpenAI.return_value = fake_client
+    fake_client.chat.completions.create.return_value = make_response(content="ok")
+    monkeypatch.setattr(openai_provider, "openai", fake_openai)
+
+    pdf_path = tmp_path / "datasheet.pdf"
+    pdf_path.write_bytes(b"%PDF-1.4 fake")
+
+    provider = OpenAIProvider(api_key="abc")
+    provider.send(
+        [
+            ChatMessage(
+                role="user",
+                content="",
+                attachments=[Attachment(path=str(pdf_path), name="datasheet.pdf")],
+            )
+        ]
+    )
+    sent = fake_client.chat.completions.create.call_args.kwargs["messages"][0]
+    assert len(sent["content"]) == 1
+    assert sent["content"][0]["type"] == "text"
+    assert "datasheet.pdf" in sent["content"][0]["text"]
 
 
 def test_send_without_package_raises_provider_error(monkeypatch):

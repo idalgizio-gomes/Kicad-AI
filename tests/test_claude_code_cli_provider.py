@@ -13,7 +13,14 @@ from unittest import mock
 import pytest
 
 import llm_providers.claude_code_cli_provider as ccp
-from llm_providers.base import ChatMessage, ChatResponse, ProviderError, ToolCall, ToolSpec
+from llm_providers.base import (
+    Attachment,
+    ChatMessage,
+    ChatResponse,
+    ProviderError,
+    ToolCall,
+    ToolSpec,
+)
 
 
 # --------------------------------------------------------------------------- #
@@ -95,6 +102,38 @@ def test_build_prompt_includes_system_and_transcript():
 
 def test_build_prompt_empty_when_no_content():
     assert ccp.ClaudeCodeCLIProvider._build_prompt([]) == ""
+
+
+def test_build_prompt_includes_attachment_path_reference():
+    # Unlike the API-key providers (which read+base64 the file), the CLI
+    # provider is a full agent with real filesystem access - it's told the
+    # real path and reads the file itself via its own Read tool, so the
+    # prompt only needs to reference the path, never the file's content.
+    messages = [
+        ChatMessage(
+            role="user",
+            content="vê este ficheiro",
+            attachments=[Attachment(path=r"C:\proj\board.kicad_pcb", name="board.kicad_pcb")],
+        )
+    ]
+    prompt = ccp.ClaudeCodeCLIProvider._build_prompt(messages)
+    assert "vê este ficheiro" in prompt
+    assert "board.kicad_pcb" in prompt
+    assert r"C:\proj\board.kicad_pcb" in prompt
+
+
+def test_build_prompt_attachment_with_no_text_content_still_rendered():
+    # An attach-only message (no typed text) must not be dropped by the
+    # "if m.content" style check that predates attachments.
+    messages = [
+        ChatMessage(
+            role="user",
+            content="",
+            attachments=[Attachment(path=r"C:\proj\board.png", name="board.png")],
+        )
+    ]
+    prompt = ccp.ClaudeCodeCLIProvider._build_prompt(messages)
+    assert "board.png" in prompt
 
 
 def test_build_prompt_includes_tool_instructions_when_tools_given():
@@ -283,6 +322,50 @@ def test_send_omits_model_flag_by_default(cli_present, monkeypatch):
     provider.send([ChatMessage(role="user", content="x")])
     cmd = run_mock.call_args[0][0]
     assert "--model" not in cmd
+
+
+# --------------------------------------------------------------------------- #
+# permission mode / tool scoping
+# --------------------------------------------------------------------------- #
+def test_default_permission_mode_is_manual():
+    provider = ccp.ClaudeCodeCLIProvider(api_key=None)
+    assert provider.permission_mode == ccp.PERMISSION_MODE_MANUAL
+
+
+def test_send_always_scopes_tools_and_passes_permission_mode(cli_present, monkeypatch):
+    payload = {"is_error": False, "result": "ok"}
+    run_mock = mock.MagicMock(return_value=_fake_run(stdout=json.dumps(payload)))
+    monkeypatch.setattr(ccp.subprocess, "run", run_mock)
+    provider = ccp.ClaudeCodeCLIProvider(api_key=None)
+    provider.send([ChatMessage(role="user", content="x")])
+    cmd = run_mock.call_args[0][0]
+
+    assert "--tools" in cmd
+    assert cmd[cmd.index("--tools") + 1] == ccp._ENABLED_BUILTIN_TOOLS
+    # Bash must never be part of the enabled set - file/folder access only.
+    assert "Bash" not in cmd[cmd.index("--tools") + 1]
+
+    assert "--permission-mode" in cmd
+    assert cmd[cmd.index("--permission-mode") + 1] == ccp.PERMISSION_MODE_MANUAL
+
+
+def test_send_uses_whatever_permission_mode_is_set_on_the_instance(cli_present, monkeypatch):
+    payload = {"is_error": False, "result": "ok"}
+    run_mock = mock.MagicMock(return_value=_fake_run(stdout=json.dumps(payload)))
+    monkeypatch.setattr(ccp.subprocess, "run", run_mock)
+    provider = ccp.ClaudeCodeCLIProvider(api_key=None)
+    provider.permission_mode = ccp.PERMISSION_MODE_AUTO
+    provider.send([ChatMessage(role="user", content="x")])
+    cmd = run_mock.call_args[0][0]
+    assert cmd[cmd.index("--permission-mode") + 1] == ccp.PERMISSION_MODE_AUTO
+
+
+def test_permission_modes_constant_has_exactly_three_values():
+    # manual (safe default), plan (describe, don't execute), acceptEdits
+    # (auto-approve file edits) - the three exposed by the GUI's "Modo:"
+    # selector. Not auto/bypassPermissions/dontAsk, which are broader than
+    # what was asked for and were never tested against the real CLI.
+    assert ccp.PERMISSION_MODES == ["manual", "plan", "acceptEdits"]
 
 
 def test_send_forwards_tools_into_stdin_prompt(cli_present, monkeypatch):

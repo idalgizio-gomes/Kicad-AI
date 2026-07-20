@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import pytest
 
 import llm_providers.gemini_provider as gp
-from llm_providers.base import ChatMessage, ProviderError, ToolCall, ToolSpec
+from llm_providers.base import Attachment, ChatMessage, ProviderError, ToolCall, ToolSpec
 
 
 # --------------------------------------------------------------------------
@@ -38,6 +38,88 @@ def test_send_raises_when_package_missing(monkeypatch):
     with pytest.raises(ProviderError) as exc:
         prov.send([ChatMessage(role="user", content="hi")])
     assert "google-generativeai" in str(exc.value)
+
+
+# --------------------------------------------------------------------------
+# attachments (tested directly against _build_history - no SDK mock needed)
+# --------------------------------------------------------------------------
+
+def test_image_attachment_becomes_inline_data_part(tmp_path):
+    img_path = tmp_path / "board.png"
+    img_path.write_bytes(b"\x89PNG\r\n\x1a\nfake")
+
+    prov = gp.GeminiProvider(api_key="k")
+    _system, history = prov._build_history(
+        [
+            ChatMessage(
+                role="user",
+                content="vê isto",
+                attachments=[Attachment(path=str(img_path), name="board.png")],
+            )
+        ]
+    )
+    parts = history[0]["parts"]
+    assert parts[0] == "vê isto"
+    assert parts[1]["inline_data"]["mime_type"] == "image/png"
+
+
+def test_pdf_attachment_also_becomes_inline_data_part(tmp_path):
+    # Unlike OpenAI's Chat Completions, Gemini natively accepts PDFs via
+    # inline_data too - confirm this doesn't degrade to a text note.
+    pdf_path = tmp_path / "datasheet.pdf"
+    pdf_path.write_bytes(b"%PDF-1.4 fake")
+
+    prov = gp.GeminiProvider(api_key="k")
+    _system, history = prov._build_history(
+        [
+            ChatMessage(
+                role="user",
+                content="",
+                attachments=[Attachment(path=str(pdf_path), name="datasheet.pdf")],
+            )
+        ]
+    )
+    parts = history[0]["parts"]
+    assert len(parts) == 1
+    assert parts[0]["inline_data"]["mime_type"] == "application/pdf"
+
+
+def test_text_attachment_becomes_string_part(tmp_path):
+    txt_path = tmp_path / "notes.txt"
+    txt_path.write_text("conteudo aqui", encoding="utf-8")
+
+    prov = gp.GeminiProvider(api_key="k")
+    _system, history = prov._build_history(
+        [
+            ChatMessage(
+                role="user",
+                content="lê",
+                attachments=[Attachment(path=str(txt_path), name="notes.txt")],
+            )
+        ]
+    )
+    parts = history[0]["parts"]
+    assert parts[0] == "lê"
+    assert isinstance(parts[1], str)
+    assert "notes.txt" in parts[1]
+    assert "conteudo aqui" in parts[1]
+
+
+def test_unsupported_attachment_becomes_explanatory_string(tmp_path):
+    missing = tmp_path / "gone.bin"
+    prov = gp.GeminiProvider(api_key="k")
+    _system, history = prov._build_history(
+        [
+            ChatMessage(
+                role="user",
+                content="",
+                attachments=[Attachment(path=str(missing), name="gone.bin")],
+            )
+        ]
+    )
+    parts = history[0]["parts"]
+    assert len(parts) == 1
+    assert "gone.bin" in parts[0]
 
 
 def test_send_raises_when_not_configured(monkeypatch):

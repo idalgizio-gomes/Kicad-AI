@@ -184,12 +184,72 @@ KNOWN_CLAUDE_MODELS = [
 ]
 
 
+# Real values accepted by the CLI's own --permission-mode flag (confirmed
+# via `claude --help`), scoped down to the three that make sense for a
+# non-interactive (-p) call — "auto"/"bypassPermissions"/"dontAsk" also
+# exist but were never tested here and are broader than what was asked for.
+#
+# "manual" is the ORIGINAL/default behavior (no flag was passed before this
+# feature existed): headless mode has no terminal to answer an interactive
+# approval prompt, so anything requiring one (Write/Edit) is denied outright
+# — confirmed via a real call, not merely documented. It is the SAFE
+# default: nothing is ever auto-approved.
+#
+# "plan" makes the model describe what it would do without executing — no
+# file is ever modified. CONFIRMED REAL QUIRK (via an actual call, not
+# documented behavior): it does NOT just print a description — it writes a
+# genuine plan file to the user's own `~/.claude/plans/` folder and then
+# reports it "can't formally exit plan mode in this context" (the tool for
+# that, ExitPlanMode, is an interactive-session concept with no headless
+# equivalent). This is a real, slightly confusing side effect (a small
+# unrequested file appears on disk) and an odd-sounding message the chat
+# user has no button to act on — kept anyway because it is genuinely
+# side-effect-free for the PROJECT files themselves (nothing about the
+# user's actual work is ever touched in this mode) and was explicitly
+# requested; the GUI should hint at this quirk rather than hide it.
+#
+# "acceptEdits" auto-approves file edits without asking (headless mode has
+# no other way to approve them) — confirmed via a real call: with it, Write
+# actually creates a file on disk; without it, the same request comes back
+# with a permission_denials entry and nothing is written. This is the mode
+# that matches "trabalhar como cowork" / "todas as funcionalidades que tu
+# tens" — deliberately opt-in, not the default, because it removes the
+# per-action confirmation this plugin's OWN tools always keep (see
+# actions/framework.py's mandatory approval gate) — Claude Code's built-in
+# Write/Edit tools bypass that gate entirely once auto-approved, which is
+# why this is a user-facing GUI choice (chat_gui.py's "Modo:" selector)
+# rather than something this provider ever defaults to on its own.
+PERMISSION_MODE_MANUAL = "manual"
+PERMISSION_MODE_PLAN = "plan"
+PERMISSION_MODE_AUTO = "acceptEdits"
+PERMISSION_MODES = [PERMISSION_MODE_MANUAL, PERMISSION_MODE_PLAN, PERMISSION_MODE_AUTO]
+
+# Built-in tools enabled regardless of permission mode — file read/write/
+# navigate ("abrir, modificar ficheiros e navegar por pastas"), i.e. Read,
+# Write, Edit, Glob, Grep. Bash is deliberately NEVER included: confirmed
+# via a real call that scoping --tools this way makes Bash genuinely
+# UNAVAILABLE to the model (it reports having no shell-execution tool at
+# all, not merely a denied one) — shell/arbitrary-command execution is a
+# materially larger risk than file I/O and was not part of what was asked
+# for ("ficheiros e pastas"), so it stays excluded until asked for
+# separately and deliberately.
+_ENABLED_BUILTIN_TOOLS = "Read,Write,Edit,Glob,Grep"
+
+
 class ClaudeCodeCLIProvider(LLMProvider):
     """Talk to the local `claude` CLI in headless mode and translate its
     JSON output to the plugin's provider-agnostic dataclasses."""
 
     id = "claude_cli"
     display_name = "Claude Code (subscrição local)"
+
+    def __init__(self, api_key: str | None, model: str | None = None) -> None:
+        super().__init__(api_key, model)
+        # Safe by default — see PERMISSION_MODE_MANUAL's docstring above.
+        # Set directly by the GUI's "Modo:" selector, same pattern as
+        # self.model (chat_gui.py owns the widget, this is just a plain
+        # attribute the next send() call reads).
+        self.permission_mode: str = PERMISSION_MODE_MANUAL
 
     def default_model(self) -> str:
         # Empty on purpose: `claude -p` uses whatever model the user's own
@@ -269,8 +329,26 @@ class ClaudeCodeCLIProvider(LLMProvider):
 
         transcript: list[tuple[str, str]] = []
         for m in messages:
-            if m.role == "user" and m.content:
-                transcript.append(("Utilizador", m.content))
+            if m.role == "user" and (m.content or m.attachments):
+                text = m.content or ""
+                if m.attachments:
+                    # Unlike the API-key providers (which read + base64 the
+                    # file and embed it in the request), the CLI provider
+                    # is a full Claude Code agent with REAL filesystem
+                    # tool access — telling it the file's real path and
+                    # letting it Read the file itself (any type: text,
+                    # image, PDF, ...) is simpler and more capable than
+                    # re-implementing that same classification/encoding
+                    # here, and it's exactly what Claude Code's own Read
+                    # tool is for.
+                    notes = "\n".join(
+                        _(
+                            "[Ficheiro anexado: {name} — caminho completo: {path}]"
+                        ).format(name=a.name, path=a.path)
+                        for a in m.attachments
+                    )
+                    text = f"{text}\n{notes}" if text else notes
+                transcript.append(("Utilizador", text))
             elif m.role == "assistant" and (m.content or m.tool_calls):
                 text = m.content or ""
                 for tc in m.tool_calls:
@@ -343,6 +421,18 @@ class ClaudeCodeCLIProvider(LLMProvider):
                 # Accepts an alias ("opus", "sonnet", "fable", "haiku") or a
                 # full model id — passed through as-is, the CLI validates it.
                 args += ["--model", self.model]
+            # File read/write/navigate access, scoped explicitly — see the
+            # PERMISSION_MODE_*/_ENABLED_BUILTIN_TOOLS constants' docstrings
+            # above for what each mode actually does and why Bash is never
+            # included. self.permission_mode defaults to "manual" (nothing
+            # auto-approved) unless the GUI's "Modo:" selector set it to
+            # something else for this provider instance.
+            args += [
+                "--tools",
+                _ENABLED_BUILTIN_TOOLS,
+                "--permission-mode",
+                self.permission_mode,
+            ]
             result = subprocess.run(
                 args,
                 input=prompt,

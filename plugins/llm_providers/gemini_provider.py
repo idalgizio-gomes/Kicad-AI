@@ -138,6 +138,44 @@ class GeminiProvider(LLMProvider):
 
     # -- outbound translation -------------------------------------------------
 
+    @staticmethod
+    def _attachment_parts(path: str) -> list:
+        """Classifies the file at `path` and translates it into Gemini
+        `parts` entries. Images AND PDFs both go in natively via
+        `inline_data` (Gemini's multimodal input accepts base64 for both,
+        unlike OpenAI's Chat Completions which has no PDF block type);
+        text-decodable files are inlined as a plain string part; anything
+        else degrades to an explanatory string, never silently dropped."""
+        try:
+            from ..attachments import classify_attachment
+        except ImportError:  # pragma: no cover - fallback for flat imports
+            from attachments import classify_attachment  # type: ignore
+
+        classified = classify_attachment(path)
+
+        if classified.kind in ("image", "pdf"):
+            return [
+                {
+                    "inline_data": {
+                        "mime_type": classified.media_type,
+                        "data": classified.data_b64,
+                    }
+                }
+            ]
+        if classified.kind == "text":
+            header = _("--- Ficheiro anexado: {name} ---").format(name=classified.name)
+            body = classified.text or ""
+            if classified.truncated:
+                body += "\n" + _("[... ficheiro truncado ...]")
+            return [f"{header}\n{body}"]
+
+        return [
+            _("[Anexo '{name}' não pôde ser incluído: {reason}]").format(
+                name=classified.name,
+                reason=classified.reason or _("motivo desconhecido"),
+            )
+        ]
+
     def _build_history(self, messages: list[ChatMessage]):
         """Split system messages out (returned separately) and translate the
         remaining conversation into Gemini's `contents` list."""
@@ -149,7 +187,15 @@ class GeminiProvider(LLMProvider):
                 if msg.content:
                     system_parts.append(msg.content)
             elif msg.role == "user":
-                history.append({"role": "user", "parts": [msg.content]})
+                if msg.attachments:
+                    parts: list = []
+                    if msg.content:
+                        parts.append(msg.content)
+                    for attachment in msg.attachments:
+                        parts.extend(self._attachment_parts(attachment.path))
+                    history.append({"role": "user", "parts": parts})
+                else:
+                    history.append({"role": "user", "parts": [msg.content]})
             elif msg.role == "assistant":
                 parts: list = []
                 if msg.content:

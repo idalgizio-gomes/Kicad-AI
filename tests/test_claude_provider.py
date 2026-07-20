@@ -14,6 +14,7 @@ import pytest
 
 import llm_providers.claude_provider as cp
 from llm_providers.base import (
+    Attachment,
     ChatMessage,
     ChatResponse,
     ProviderError,
@@ -325,6 +326,92 @@ def test_no_tools_key_when_none(fake_anthropic):
     provider = cp.ClaudeProvider(api_key="k")
     provider.send([ChatMessage(role="user", content="oi")])
     assert "tools" not in fake.captured_kwargs
+
+
+# --------------------------------------------------------------------------- #
+# Attachments
+# --------------------------------------------------------------------------- #
+def test_image_attachment_becomes_native_image_block(fake_anthropic, tmp_path):
+    fake = fake_anthropic(
+        response=_response([_block(type="text", text="ok")], "end_turn")
+    )
+    img_path = tmp_path / "board.png"
+    img_path.write_bytes(b"\x89PNG\r\n\x1a\nfake")
+
+    provider = cp.ClaudeProvider(api_key="k")
+    provider.send(
+        [
+            ChatMessage(
+                role="user",
+                content="vê esta imagem",
+                attachments=[Attachment(path=str(img_path), name="board.png")],
+            )
+        ]
+    )
+    msg = fake.captured_kwargs["messages"][0]
+    assert msg["role"] == "user"
+    assert msg["content"][0] == {"type": "text", "text": "vê esta imagem"}
+    assert msg["content"][1]["type"] == "image"
+    assert msg["content"][1]["source"]["media_type"] == "image/png"
+
+
+def test_text_attachment_becomes_text_block_with_header(fake_anthropic, tmp_path):
+    fake = fake_anthropic(
+        response=_response([_block(type="text", text="ok")], "end_turn")
+    )
+    txt_path = tmp_path / "notes.txt"
+    txt_path.write_text("conteudo do ficheiro", encoding="utf-8")
+
+    provider = cp.ClaudeProvider(api_key="k")
+    provider.send(
+        [
+            ChatMessage(
+                role="user",
+                content="lê isto",
+                attachments=[Attachment(path=str(txt_path), name="notes.txt")],
+            )
+        ]
+    )
+    blocks = fake.captured_kwargs["messages"][0]["content"]
+    assert blocks[0] == {"type": "text", "text": "lê isto"}
+    assert blocks[1]["type"] == "text"
+    assert "notes.txt" in blocks[1]["text"]
+    assert "conteudo do ficheiro" in blocks[1]["text"]
+
+
+def test_unsupported_attachment_becomes_explanatory_text_block(fake_anthropic, tmp_path):
+    fake = fake_anthropic(
+        response=_response([_block(type="text", text="ok")], "end_turn")
+    )
+    missing_path = tmp_path / "does-not-exist.pdf"
+
+    provider = cp.ClaudeProvider(api_key="k")
+    provider.send(
+        [
+            ChatMessage(
+                role="user",
+                content="",
+                attachments=[Attachment(path=str(missing_path), name="does-not-exist.pdf")],
+            )
+        ]
+    )
+    blocks = fake.captured_kwargs["messages"][0]["content"]
+    # No text block for the (empty) message content, only the attachment note.
+    assert len(blocks) == 1
+    assert blocks[0]["type"] == "text"
+    assert "does-not-exist.pdf" in blocks[0]["text"]
+
+
+def test_message_without_attachments_still_sends_plain_string_content(fake_anthropic):
+    fake = fake_anthropic(
+        response=_response([_block(type="text", text="ok")], "end_turn")
+    )
+    provider = cp.ClaudeProvider(api_key="k")
+    provider.send([ChatMessage(role="user", content="sem anexos")])
+    msg = fake.captured_kwargs["messages"][0]
+    # Backward-compatible shape: plain string, not a content-block list,
+    # when there's nothing attached.
+    assert msg == {"role": "user", "content": "sem anexos"}
     assert "system" not in fake.captured_kwargs
 
 

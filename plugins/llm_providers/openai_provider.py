@@ -127,13 +127,58 @@ class OpenAIProvider(LLMProvider):
 
     # -- message mapping --------------------------------------------------
 
+    @staticmethod
+    def _attachment_content_parts(path: str) -> list[dict]:
+        """Classifies the file at `path` and translates it into Chat
+        Completions content parts. Images go in natively as base64 data
+        URIs (`image_url`) — Chat Completions has no PDF/document block
+        type (that's Assistants-API-only), so a PDF degrades the same way
+        as any other unsupported kind: a plain text note, never silently
+        dropped or sent as raw bytes."""
+        try:
+            from ..attachments import classify_attachment
+        except ImportError:  # pragma: no cover - fallback for flat imports
+            from attachments import classify_attachment  # type: ignore
+
+        classified = classify_attachment(path)
+
+        if classified.kind == "image":
+            data_uri = f"data:{classified.media_type};base64,{classified.data_b64}"
+            return [{"type": "image_url", "image_url": {"url": data_uri}}]
+        if classified.kind == "text":
+            header = _("--- Ficheiro anexado: {name} ---").format(name=classified.name)
+            body = classified.text or ""
+            if classified.truncated:
+                body += "\n" + _("[... ficheiro truncado ...]")
+            return [{"type": "text", "text": f"{header}\n{body}"}]
+
+        # "pdf" (unsupported here), "unsupported", or "error"
+        return [
+            {
+                "type": "text",
+                "text": _("[Anexo '{name}' não pôde ser incluído: {reason}]").format(
+                    name=classified.name,
+                    reason=classified.reason
+                    or _("PDFs não são suportados pela API de Chat Completions."),
+                ),
+            }
+        ]
+
     def _to_api_messages(self, messages: list[ChatMessage]) -> list[dict]:
         api_messages: list[dict] = []
         for msg in messages:
             if msg.role == "system":
                 api_messages.append({"role": "system", "content": msg.content})
             elif msg.role == "user":
-                api_messages.append({"role": "user", "content": msg.content})
+                if msg.attachments:
+                    parts: list[dict] = []
+                    if msg.content:
+                        parts.append({"type": "text", "text": msg.content})
+                    for attachment in msg.attachments:
+                        parts.extend(self._attachment_content_parts(attachment.path))
+                    api_messages.append({"role": "user", "content": parts})
+                else:
+                    api_messages.append({"role": "user", "content": msg.content})
             elif msg.role == "assistant":
                 entry: dict = {
                     "role": "assistant",
