@@ -53,9 +53,11 @@ class _FakeAnthropicModule:
     class APIConnectionError(Exception):
         pass
 
-    def __init__(self, response=None, raises=None):
+    def __init__(self, response=None, raises=None, models=None, models_raises=None):
         self._response = response
         self._raises = raises
+        self._models = models if models is not None else []
+        self._models_raises = models_raises
         self.create = mock.MagicMock(side_effect=self._create)
         self.captured_kwargs = None
 
@@ -65,10 +67,16 @@ class _FakeAnthropicModule:
             raise self._raises
         return self._response
 
+    def _list_models(self):
+        if self._models_raises is not None:
+            raise self._models_raises
+        return [types.SimpleNamespace(id=m) for m in self._models]
+
     def Anthropic(self, api_key=None):  # noqa: N802 - mimic SDK class name
         self.api_key = api_key
         return types.SimpleNamespace(
-            messages=types.SimpleNamespace(create=self.create)
+            messages=types.SimpleNamespace(create=self.create),
+            models=types.SimpleNamespace(list=self._list_models),
         )
 
 
@@ -76,8 +84,10 @@ class _FakeAnthropicModule:
 def fake_anthropic(monkeypatch):
     """Install a fake anthropic module into the provider and return it."""
 
-    def _install(response=None, raises=None):
-        fake = _FakeAnthropicModule(response=response, raises=raises)
+    def _install(response=None, raises=None, models=None, models_raises=None):
+        fake = _FakeAnthropicModule(
+            response=response, raises=raises, models=models, models_raises=models_raises
+        )
         monkeypatch.setattr(cp, "anthropic", fake)
         return fake
 
@@ -107,6 +117,46 @@ def test_is_configured():
 def test_custom_model_overrides_default():
     provider = cp.ClaudeProvider(api_key="k", model="claude-sonnet-5")
     assert provider.model == "claude-sonnet-5"
+
+
+# --------------------------------------------------------------------------- #
+# list_models()
+# --------------------------------------------------------------------------- #
+def test_list_models_returns_live_ids_when_available(fake_anthropic):
+    fake_anthropic(models=["claude-opus-4-8", "claude-sonnet-5"])
+    provider = cp.ClaudeProvider(api_key="k")
+    assert provider.list_models() == ["claude-opus-4-8", "claude-sonnet-5"]
+
+
+def test_list_models_falls_back_to_known_list_on_api_error(fake_anthropic):
+    fake_anthropic(models_raises=RuntimeError("network down"))
+    provider = cp.ClaudeProvider(api_key="k")
+    from llm_providers.claude_code_cli_provider import KNOWN_CLAUDE_MODELS
+
+    assert provider.list_models() == KNOWN_CLAUDE_MODELS
+
+
+def test_list_models_falls_back_when_no_api_key():
+    provider = cp.ClaudeProvider(api_key=None)
+    from llm_providers.claude_code_cli_provider import KNOWN_CLAUDE_MODELS
+
+    assert provider.list_models() == KNOWN_CLAUDE_MODELS
+
+
+def test_list_models_falls_back_when_package_missing(monkeypatch):
+    monkeypatch.setattr(cp, "anthropic", None)
+    provider = cp.ClaudeProvider(api_key="k")
+    from llm_providers.claude_code_cli_provider import KNOWN_CLAUDE_MODELS
+
+    assert provider.list_models() == KNOWN_CLAUDE_MODELS
+
+
+def test_list_models_falls_back_when_live_list_is_empty(fake_anthropic):
+    fake_anthropic(models=[])
+    provider = cp.ClaudeProvider(api_key="k")
+    from llm_providers.claude_code_cli_provider import KNOWN_CLAUDE_MODELS
+
+    assert provider.list_models() == KNOWN_CLAUDE_MODELS
 
 
 # --------------------------------------------------------------------------- #

@@ -33,6 +33,46 @@ def test_is_configured():
     assert OpenAIProvider(api_key=None).is_configured() is False
 
 
+def test_list_models_returns_gpt_ids_filtered_and_sorted(monkeypatch):
+    fake_openai = MagicMock()
+    fake_client = MagicMock()
+    fake_openai.OpenAI.return_value = fake_client
+    fake_client.models.list.return_value = [
+        SimpleNamespace(id="gpt-4o"),
+        SimpleNamespace(id="text-embedding-3-small"),
+        SimpleNamespace(id="gpt-4o-mini"),
+        SimpleNamespace(id="whisper-1"),
+    ]
+    monkeypatch.setattr(openai_provider, "openai", fake_openai)
+
+    provider = OpenAIProvider(api_key="abc")
+    assert provider.list_models() == ["gpt-4o", "gpt-4o-mini"]
+
+
+def test_list_models_empty_when_no_api_key(monkeypatch):
+    fake_openai = MagicMock()
+    monkeypatch.setattr(openai_provider, "openai", fake_openai)
+    provider = OpenAIProvider(api_key=None)
+    assert provider.list_models() == []
+
+
+def test_list_models_empty_when_package_missing(monkeypatch):
+    monkeypatch.setattr(openai_provider, "openai", None)
+    provider = OpenAIProvider(api_key="abc")
+    assert provider.list_models() == []
+
+
+def test_list_models_empty_on_api_error(monkeypatch):
+    fake_openai = MagicMock()
+    fake_client = MagicMock()
+    fake_openai.OpenAI.return_value = fake_client
+    fake_client.models.list.side_effect = RuntimeError("network down")
+    monkeypatch.setattr(openai_provider, "openai", fake_openai)
+
+    provider = OpenAIProvider(api_key="abc")
+    assert provider.list_models() == []
+
+
 def test_send_without_package_raises_provider_error(monkeypatch):
     monkeypatch.setattr(openai_provider, "openai", None)
     provider = OpenAIProvider(api_key="abc")

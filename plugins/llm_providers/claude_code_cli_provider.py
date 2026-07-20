@@ -167,6 +167,23 @@ def _extract_action_block(text: str) -> tuple[str, ToolCall | None]:
     return remaining, tool_call
 
 
+# Real, verified model ids the `claude` CLI's own --model flag accepts
+# ("Provide an alias for the latest model (e.g. 'fable', 'opus', or
+# 'sonnet') or a model's full name" — confirmed via `claude --help`). No
+# live "list models" CLI subcommand exists to query this dynamically, so
+# this is a maintained static list rather than a guess — kept in sync with
+# the model table the claude-api skill tracks.
+KNOWN_CLAUDE_MODELS = [
+    "claude-fable-5",
+    "claude-opus-4-8",
+    "claude-opus-4-7",
+    "claude-opus-4-6",
+    "claude-sonnet-5",
+    "claude-sonnet-4-6",
+    "claude-haiku-4-5",
+]
+
+
 class ClaudeCodeCLIProvider(LLMProvider):
     """Talk to the local `claude` CLI in headless mode and translate its
     JSON output to the plugin's provider-agnostic dataclasses."""
@@ -183,6 +200,9 @@ class ClaudeCodeCLIProvider(LLMProvider):
 
     def is_configured(self) -> bool:
         return find_claude_cli() is not None
+
+    def list_models(self) -> list[str]:
+        return list(KNOWN_CLAUDE_MODELS)
 
     # ------------------------------------------------------------------ #
     # Request mapping (plugin conversation -> a single CLI prompt)

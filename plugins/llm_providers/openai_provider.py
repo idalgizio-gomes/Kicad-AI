@@ -58,6 +58,26 @@ class OpenAIProvider(LLMProvider):
     def default_model(self) -> str:
         return "gpt-4o"
 
+    def list_models(self) -> list[str]:
+        """Live GET /v1/models — no verified static fallback list is
+        maintained here (unlike Claude's), since guessing OpenAI model ids
+        risks showing stale/wrong names; an empty list is the honest result
+        when the live call fails (missing key, network, SDK differences),
+        and the GUI falls back to free-text entry in that case. Chat
+        Completions models are (heuristically) those whose id contains
+        "gpt" — the endpoint also lists embedding/whisper/tts/moderation
+        models this provider can't use for chat, and the API gives no
+        cleaner capability flag to filter on."""
+        if openai is None or not self.api_key:
+            return []
+        try:
+            client = openai.OpenAI(api_key=self.api_key)
+            page = client.models.list()
+            ids = sorted(m.id for m in page if "gpt" in m.id.lower())
+            return ids
+        except Exception:
+            return []
+
     def send(
         self, messages: list[ChatMessage], tools: list[ToolSpec] | None = None
     ) -> ChatResponse:

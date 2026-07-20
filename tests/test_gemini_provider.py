@@ -48,6 +48,50 @@ def test_send_raises_when_not_configured(monkeypatch):
 
 
 # --------------------------------------------------------------------------
+# list_models()
+# --------------------------------------------------------------------------
+
+def _fake_genai_model(name, methods):
+    return SimpleNamespace(name=name, supported_generation_methods=methods)
+
+
+def test_list_models_filters_to_generate_content_and_strips_prefix(monkeypatch):
+    fake_genai = SimpleNamespace(
+        configure=lambda api_key: None,
+        list_models=lambda: [
+            _fake_genai_model("models/gemini-2.0-flash", ["generateContent"]),
+            _fake_genai_model("models/embedding-001", ["embedContent"]),
+            _fake_genai_model("models/gemini-1.5-pro", ["generateContent", "countTokens"]),
+        ],
+    )
+    monkeypatch.setattr(gp, "genai", fake_genai)
+    prov = gp.GeminiProvider(api_key="k")
+    assert prov.list_models() == ["gemini-1.5-pro", "gemini-2.0-flash"]
+
+
+def test_list_models_empty_when_no_api_key(monkeypatch):
+    monkeypatch.setattr(gp, "genai", SimpleNamespace(configure=lambda **kw: None, list_models=lambda: []))
+    prov = gp.GeminiProvider(api_key=None)
+    assert prov.list_models() == []
+
+
+def test_list_models_empty_when_package_missing(monkeypatch):
+    monkeypatch.setattr(gp, "genai", None)
+    prov = gp.GeminiProvider(api_key="k")
+    assert prov.list_models() == []
+
+
+def test_list_models_empty_on_api_error(monkeypatch):
+    def _raise(**kwargs):
+        raise RuntimeError("network down")
+
+    fake_genai = SimpleNamespace(configure=_raise, list_models=lambda: [])
+    monkeypatch.setattr(gp, "genai", fake_genai)
+    prov = gp.GeminiProvider(api_key="k")
+    assert prov.list_models() == []
+
+
+# --------------------------------------------------------------------------
 # _clean_schema
 # --------------------------------------------------------------------------
 

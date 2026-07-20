@@ -35,6 +35,13 @@ except ImportError:  # pragma: no cover - import shim
     import i18n as _i18n  # type: ignore
     from i18n import SUPPORTED_LANGUAGES, current_language, setup_i18n  # type: ignore
 
+# conversation_store, like i18n, is pure stdlib (no wx/pcbnew) — safe to
+# import at module scope, same precedent as the i18n import above.
+try:  # pragma: no cover - import shim
+    from . import conversation_store
+except ImportError:  # pragma: no cover - import shim
+    import conversation_store  # type: ignore
+
 
 def _(message: str) -> str:  # noqa: N807 - conventional gettext alias name
     """Translate ``message`` using whatever language is CURRENTLY active.
@@ -89,6 +96,169 @@ def _make_message(role, content, tool_calls=None, tool_call_id=None):
     )
 
 
+class ModelPickerDialog(wx.Dialog):
+    """Real model selection window (not free text) — populated from
+    ``provider.list_models()``. Opens even when that list is empty (missing
+    key, network failure, no live query for this provider) and explains why
+    instead of appearing broken, since a blank picker with no explanation
+    would be worse than the free-text field it's meant to improve on."""
+
+    def __init__(self, parent, models, current_model):
+        super().__init__(
+            parent,
+            title=_("Escolher modelo"),
+            size=(420, 360),
+            style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER,
+        )
+        self.selected_model = None
+        self._listbox = None
+
+        outer = wx.BoxSizer(wx.VERTICAL)
+        if models:
+            self._listbox = wx.ListBox(self, choices=models, style=wx.LB_SINGLE)
+            try:
+                self._listbox.SetSelection(models.index(current_model))
+            except ValueError:
+                pass
+            self._listbox.Bind(wx.EVT_LISTBOX_DCLICK, self._on_ok)
+            outer.Add(self._listbox, 1, wx.EXPAND | wx.ALL, 8)
+        else:
+            msg = wx.StaticText(
+                self,
+                label=_(
+                    "Não foi possível obter a lista de modelos deste "
+                    "fornecedor (verifique a chave API ou a ligação). Pode "
+                    "escrever o nome do modelo diretamente no campo "
+                    "'Modelo'."
+                ),
+            )
+            msg.Wrap(380)
+            outer.Add(msg, 1, wx.EXPAND | wx.ALL, 12)
+
+        btn_row = wx.BoxSizer(wx.HORIZONTAL)
+        ok_btn = wx.Button(self, wx.ID_OK, label=_("Selecionar"))
+        ok_btn.Bind(wx.EVT_BUTTON, self._on_ok)
+        ok_btn.Enable(bool(models))
+        cancel_btn = wx.Button(self, wx.ID_CANCEL, label=_("Cancelar"))
+        btn_row.Add(ok_btn, 0, wx.RIGHT, 6)
+        btn_row.Add(cancel_btn, 0)
+        outer.Add(btn_row, 0, wx.ALIGN_RIGHT | wx.ALL, 8)
+
+        self.SetSizer(outer)
+
+    def _on_ok(self, _event):
+        if self._listbox is not None:
+            idx = self._listbox.GetSelection()
+            if idx != wx.NOT_FOUND:
+                self.selected_model = self._listbox.GetString(idx)
+        self.EndModal(wx.ID_OK)
+
+
+class ConversationPickerDialog(wx.Dialog):
+    """Lists saved conversations (conversation_store.list_conversations())
+    for opening or deleting. "Nova conversa" is a distinct outcome from
+    "Abrir" — the caller (ChatDialog) tells them apart via `self.action`."""
+
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            title=_("Conversas"),
+            size=(480, 400),
+            style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER,
+        )
+        self.action = None  # "open" | "new" | None (cancelled)
+        self.selected_id = None
+
+        self._items = conversation_store.list_conversations()
+
+        outer = wx.BoxSizer(wx.VERTICAL)
+        self._listbox = wx.ListBox(
+            self,
+            choices=[self._format_item(it) for it in self._items],
+            style=wx.LB_SINGLE,
+        )
+        if self._items:
+            self._listbox.SetSelection(0)
+        self._listbox.Bind(wx.EVT_LISTBOX_DCLICK, self._on_open)
+        outer.Add(self._listbox, 1, wx.EXPAND | wx.ALL, 8)
+
+        btn_row = wx.BoxSizer(wx.HORIZONTAL)
+        new_btn = wx.Button(self, label=_("Nova conversa"))
+        new_btn.Bind(wx.EVT_BUTTON, self._on_new)
+        btn_row.Add(new_btn, 0, wx.RIGHT, 6)
+
+        open_btn = wx.Button(self, label=_("Abrir"))
+        open_btn.Bind(wx.EVT_BUTTON, self._on_open)
+        open_btn.Enable(bool(self._items))
+        btn_row.Add(open_btn, 0, wx.RIGHT, 6)
+
+        delete_btn = wx.Button(self, label=_("Eliminar"))
+        delete_btn.Bind(wx.EVT_BUTTON, self._on_delete)
+        delete_btn.Enable(bool(self._items))
+        btn_row.Add(delete_btn, 0, wx.RIGHT, 6)
+
+        self._open_btn = open_btn
+        self._delete_btn = delete_btn
+
+        cancel_btn = wx.Button(self, wx.ID_CANCEL, label=_("Fechar"))
+        btn_row.Add(cancel_btn, 0)
+        outer.Add(btn_row, 0, wx.ALIGN_RIGHT | wx.ALL, 8)
+
+        self.SetSizer(outer)
+
+    @staticmethod
+    def _format_item(item):
+        import time as _time
+
+        try:
+            when = _time.strftime(
+                "%Y-%m-%d %H:%M", _time.localtime(item.get("updated_at") or 0)
+            )
+        except Exception:
+            when = ""
+        title = item.get("title") or item.get("id") or ""
+        return f"{title}   ({when})" if when else title
+
+    def _selected_item(self):
+        idx = self._listbox.GetSelection()
+        if idx == wx.NOT_FOUND or idx >= len(self._items):
+            return None
+        return self._items[idx]
+
+    def _on_open(self, _event):
+        item = self._selected_item()
+        if item is None:
+            return
+        self.action = "open"
+        self.selected_id = item["id"]
+        self.EndModal(wx.ID_OK)
+
+    def _on_new(self, _event):
+        self.action = "new"
+        self.EndModal(wx.ID_OK)
+
+    def _on_delete(self, _event):
+        item = self._selected_item()
+        if item is None:
+            return
+        confirm = wx.MessageDialog(
+            self,
+            _("Eliminar a conversa '{title}'? Esta ação não pode ser desfeita.").format(
+                title=item.get("title") or item.get("id")
+            ),
+            _("Eliminar conversa?"),
+            wx.YES_NO | wx.ICON_WARNING | wx.NO_DEFAULT,
+        )
+        if confirm.ShowModal() == wx.ID_YES:
+            conversation_store.delete_conversation(item["id"])
+            self._items = conversation_store.list_conversations()
+            self._listbox.Set([self._format_item(it) for it in self._items])
+            has_items = bool(self._items)
+            self._open_btn.Enable(has_items)
+            self._delete_btn.Enable(has_items)
+        confirm.Destroy()
+
+
 class ChatDialog(wx.Dialog):
     """Non-blocking chat dialog. All LLM/tool work runs on a worker thread and
     every UI mutation is marshalled back to the main thread via wx.CallAfter."""
@@ -132,7 +302,13 @@ class ChatDialog(wx.Dialog):
         self._run_tool_loop = run_tool_loop
 
         # Conversation state: always starts with the injected system prompt.
+        self._system_prompt = system_prompt
         self._messages = [_make_message("system", system_prompt)]
+        # A fresh id per dialog "session" — reassigned by _start_new_conversation
+        # / _open_conversation, never reused across two DIFFERENT conversations
+        # sharing one dialog instance (switching conversations mid-dialog is
+        # supported, see the "Conversas" picker).
+        self._conversation_id = conversation_store.new_conversation_id()
 
         # Current provider id + instance (created lazily / on switch).
         self._provider_id = self._provider_ids[0] if self._provider_ids else None
@@ -150,11 +326,24 @@ class ChatDialog(wx.Dialog):
 
         self._build_ui()
         self._create_provider(self._provider_id)
+        self.Bind(wx.EVT_CLOSE, self._on_close)
 
     # ------------------------------------------------------------------ UI ---
     def _build_ui(self):
         panel = wx.Panel(self)
         outer = wx.BoxSizer(wx.VERTICAL)
+
+        # Conversations row: new / open-or-manage saved conversations.
+        conv_row = wx.BoxSizer(wx.HORIZONTAL)
+        new_conv_btn = wx.Button(panel, label=_("Nova conversa"))
+        new_conv_btn.Bind(wx.EVT_BUTTON, self._on_new_conversation)
+        conv_row.Add(new_conv_btn, 0, wx.RIGHT, 6)
+        conversations_btn = wx.Button(panel, label=_("Conversas..."))
+        conversations_btn.Bind(wx.EVT_BUTTON, self._on_open_conversations)
+        conv_row.Add(conversations_btn, 0)
+        self._new_conv_btn = new_conv_btn
+        self._conversations_btn = conversations_btn
+        outer.Add(conv_row, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 8)
 
         # Top row: provider chooser, model override, language picker.
         top = wx.BoxSizer(wx.HORIZONTAL)
@@ -190,7 +379,15 @@ class ChatDialog(wx.Dialog):
         )
         self._model_input.SetHint(_("(padrão do fornecedor)"))
         self._model_input.Bind(wx.EVT_TEXT_ENTER, self._on_model_change)
-        top.Add(self._model_input, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 12)
+        top.Add(self._model_input, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 4)
+
+        # Opens a real selection window listing this provider's actual
+        # models (list_models()) instead of relying on free text alone —
+        # the free-text field above stays available for power users /
+        # providers where no live list is available.
+        self._model_picker_btn = wx.Button(panel, label="...", size=(28, -1))
+        self._model_picker_btn.Bind(wx.EVT_BUTTON, self._on_open_model_picker)
+        top.Add(self._model_picker_btn, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 12)
 
         # Language picker — see _on_language_change / _retranslate_static_labels
         # for the "re-render live" pattern (static wx widgets never
@@ -227,12 +424,16 @@ class ChatDialog(wx.Dialog):
         bottom.Add(self._send_btn, 0, wx.ALIGN_CENTER_VERTICAL)
         outer.Add(bottom, 0, wx.EXPAND | wx.ALL, 8)
 
-        # Status + cumulative session cost, side by side.
+        # Status + cumulative session cost + a way to actually set the limit
+        # (previously only configurable by hand-editing config.json).
         status_row = wx.BoxSizer(wx.HORIZONTAL)
         self._status = wx.StaticText(panel, label=_("Pronto."))
         status_row.Add(self._status, 1, wx.ALIGN_CENTER_VERTICAL)
         self._cost_label = wx.StaticText(panel, label="")
-        status_row.Add(self._cost_label, 0, wx.ALIGN_CENTER_VERTICAL)
+        status_row.Add(self._cost_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
+        self._cost_limit_btn = wx.Button(panel, label=_("Limite..."), size=(-1, -1))
+        self._cost_limit_btn.Bind(wx.EVT_BUTTON, self._on_set_cost_limit)
+        status_row.Add(self._cost_limit_btn, 0, wx.ALIGN_CENTER_VERTICAL)
         outer.Add(status_row, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
 
         panel.SetSizer(outer)
@@ -267,6 +468,9 @@ class ChatDialog(wx.Dialog):
         self._lang_label.SetLabel(_("Idioma:"))
         self._send_btn.SetLabel(_("Enviar"))
         self._model_input.SetHint(_("(padrão do fornecedor)"))
+        self._new_conv_btn.SetLabel(_("Nova conversa"))
+        self._conversations_btn.SetLabel(_("Conversas..."))
+        self._cost_limit_btn.SetLabel(_("Limite..."))
 
         # Provider choice list: rebuild from the raw pt-source labels so
         # each entry re-translates instead of staying frozen at whatever
@@ -339,6 +543,137 @@ class ChatDialog(wx.Dialog):
                 )
             )
 
+    def _on_open_model_picker(self, _event):
+        """Opens a real selection window (ModelPickerDialog) listing this
+        provider's actual models — addresses free text potentially not
+        matching any real model. list_models() may do a live network call;
+        a busy cursor covers that brief wait rather than threading it (this
+        is a one-off user-initiated action, not the main send() path that
+        genuinely must stay async)."""
+        if self._provider is None:
+            self._append_error(_("Nenhum fornecedor está configurado."))
+            return
+        with wx.BusyCursor():
+            try:
+                models = self._provider.list_models()
+            except Exception:
+                models = []
+        dlg = ModelPickerDialog(self, models, self._model_input.GetValue().strip())
+        if dlg.ShowModal() == wx.ID_OK and dlg.selected_model:
+            self._model_input.SetValue(dlg.selected_model)
+            self._on_model_change(None)
+        dlg.Destroy()
+
+    # ------------------------------------------------------------ cost limit ---
+    def _on_set_cost_limit(self, _event):
+        """Lets the user actually SET the session cost-alert limit from the
+        GUI — previously only configurable by hand-editing config.json's
+        cost_alert_limit_usd key before the dialog was even opened."""
+        current = f"{self._cost_alert_limit_usd:.2f}" if self._cost_alert_limit_usd else ""
+        dlg = wx.TextEntryDialog(
+            self,
+            _(
+                "Define o limite de custo desta sessão em USD "
+                "(vazio = sem limite/alertas):"
+            ),
+            _("Limite de custo"),
+            current,
+        )
+        try:
+            if dlg.ShowModal() != wx.ID_OK:
+                return
+            text = dlg.GetValue().strip()
+        finally:
+            dlg.Destroy()
+
+        if not text:
+            self._cost_alert_limit_usd = None
+        else:
+            try:
+                value = float(text.replace(",", "."))
+            except ValueError:
+                self._append_error(
+                    _("Valor de limite inválido: '{value}'.").format(value=text)
+                )
+                return
+            self._cost_alert_limit_usd = value if value > 0 else None
+
+        # A new limit means the old thresholds (50%/80%/100% of the OLD
+        # limit) no longer mean anything - re-arm all of them so the new
+        # limit's own thresholds can fire fresh.
+        self._cost_alert_hit = set()
+        self._update_cost_label()
+        self._check_cost_alerts()
+
+    # -------------------------------------------------------- conversations ---
+    def _save_current_conversation(self):
+        """Best-effort persistence — never lets a disk/permission error
+        interrupt the chat itself. Skips saving a conversation that never
+        got a real user message (nothing worth keeping from an untouched
+        dialog, and it would otherwise litter the picker with empty
+        entries every time the chat window is opened and closed)."""
+        if not any(m.role == "user" for m in self._messages):
+            return
+        try:
+            conversation_store.save_conversation(self._conversation_id, self._messages)
+        except Exception:
+            pass
+
+    def _reset_conversation_state(self, conversation_id, messages):
+        """Shared by _on_new_conversation / _on_open_conversations: swap in
+        a different conversation's state and fully re-render the history
+        control from scratch (there is no incremental "diff" path for a
+        wholesale conversation swap, unlike a normal turn)."""
+        self._conversation_id = conversation_id
+        self._messages = list(messages)
+        self._history.Clear()
+        for msg in self._messages:
+            if msg.role == "system":
+                continue
+            self._render_message(msg)
+        self._recompute_session_cost()
+        self._cost_alert_hit = set()
+        self._set_status(_("Pronto."))
+
+    def _on_new_conversation(self, _event):
+        self._save_current_conversation()
+        self._reset_conversation_state(
+            conversation_store.new_conversation_id(),
+            [_make_message("system", self._system_prompt)],
+        )
+        self._append_line(_("[info] Nova conversa iniciada."))
+
+    def _on_open_conversations(self, _event):
+        self._save_current_conversation()
+        dlg = ConversationPickerDialog(self)
+        try:
+            if dlg.ShowModal() != wx.ID_OK or dlg.action is None:
+                return
+            if dlg.action == "new":
+                self._reset_conversation_state(
+                    conversation_store.new_conversation_id(),
+                    [_make_message("system", self._system_prompt)],
+                )
+                self._append_line(_("[info] Nova conversa iniciada."))
+            elif dlg.action == "open" and dlg.selected_id:
+                try:
+                    _title, messages = conversation_store.load_conversation(dlg.selected_id)
+                except Exception as exc:
+                    self._append_error(
+                        _("Não foi possível abrir a conversa: {err}").format(err=exc)
+                    )
+                    return
+                if not any(m.role == "system" for m in messages):
+                    messages = [_make_message("system", self._system_prompt)] + messages
+                self._reset_conversation_state(dlg.selected_id, messages)
+                self._append_line(_("[info] Conversa aberta."))
+        finally:
+            dlg.Destroy()
+
+    def _on_close(self, event):
+        self._save_current_conversation()
+        event.Skip()  # let the normal close behaviour (Destroy) proceed
+
     # --------------------------------------------------------------- events ---
     def _on_send(self, _event):
         if self._busy:
@@ -353,8 +688,9 @@ class ChatDialog(wx.Dialog):
             return
 
         self._input.SetValue("")
-        self._append_line(_("Você:") + " " + text)
-        self._messages.append(_make_message("user", text))
+        user_msg = _make_message("user", text)
+        self._render_message(user_msg)
+        self._messages.append(user_msg)
 
         self._set_busy(True)
         self._set_status(_("A pensar..."))
@@ -406,6 +742,10 @@ class ChatDialog(wx.Dialog):
         self._recompute_session_cost()
         self._set_busy(False)
         self._set_status(_("Pronto."))
+        # Auto-save after every completed turn, not just on explicit
+        # new/open/close — a KiCad crash or an unclean close must not lose
+        # a conversation that already has real content.
+        self._save_current_conversation()
 
     def _recompute_session_cost(self):
         """Sum cost_usd across every message's meta, not an incremental
@@ -532,12 +872,22 @@ class ChatDialog(wx.Dialog):
 
     # ------------------------------------------------------------- history ---
     def _render_message(self, msg):
-        """Render a ChatMessage produced by the tool loop into the history."""
+        """Render a ChatMessage into the history — the ONE place that does
+        this, for EVERY role, so a loaded/reopened conversation (which
+        replays "user" messages too, unlike a live turn where run_tool_loop
+        only ever appends assistant/tool messages) renders identically to a
+        live one. Originally "Você: ..." was appended inline in _on_send
+        instead of going through here, which meant _reset_conversation_state
+        silently dropped every user message when reopening a saved
+        conversation — this consolidation is the fix, not just a refactor."""
         role = getattr(msg, "role", "")
         content = getattr(msg, "content", "") or ""
         tool_calls = getattr(msg, "tool_calls", None) or []
 
-        if role == "assistant":
+        if role == "user":
+            if content.strip():
+                self._append_line(_("Você:") + " " + content.strip())
+        elif role == "assistant":
             if content.strip():
                 self._append_line(_("Assistente:") + " " + content.strip())
             elif not tool_calls:

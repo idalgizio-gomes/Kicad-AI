@@ -111,6 +111,31 @@ class GeminiProvider(LLMProvider):
     def default_model(self) -> str:
         return "gemini-2.0-flash"
 
+    def list_models(self) -> list[str]:
+        """Live genai.list_models() — filtered to models that actually
+        support generateContent (the endpoint also lists embedding-only
+        models this provider can never call for chat). No verified static
+        fallback list is maintained (unlike Claude's) — an empty list on
+        any failure (missing key, network, SDK differences) is the honest
+        result; the GUI falls back to free-text entry in that case."""
+        if genai is None or not self.api_key:
+            return []
+        try:
+            genai.configure(api_key=self.api_key)
+            names = []
+            for m in genai.list_models():
+                methods = getattr(m, "supported_generation_methods", None) or []
+                if "generateContent" in methods:
+                    name = getattr(m, "name", "")
+                    # SDK returns "models/gemini-2.0-flash" - strip the
+                    # "models/" prefix so it matches what self.model /
+                    # GenerativeModel(...) actually expects elsewhere in
+                    # this file.
+                    names.append(name.split("/", 1)[-1] if name else name)
+            return sorted(n for n in names if n)
+        except Exception:
+            return []
+
     # -- outbound translation -------------------------------------------------
 
     def _build_history(self, messages: list[ChatMessage]):

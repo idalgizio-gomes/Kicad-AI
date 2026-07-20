@@ -56,6 +56,16 @@ def test_default_model_is_empty():
     assert provider.default_model() == ""
 
 
+def test_list_models_returns_known_claude_models():
+    provider = ccp.ClaudeCodeCLIProvider(api_key=None)
+    models = provider.list_models()
+    assert models == ccp.KNOWN_CLAUDE_MODELS
+    # Returned list must be a copy - mutating it must not corrupt the
+    # shared constant for the next caller.
+    models.append("not-a-real-model")
+    assert "not-a-real-model" not in ccp.KNOWN_CLAUDE_MODELS
+
+
 def test_is_configured_reflects_cli_presence(monkeypatch):
     monkeypatch.setattr(ccp, "find_claude_cli", lambda: r"C:\bin\claude.exe")
     assert ccp.ClaudeCodeCLIProvider(api_key=None).is_configured() is True

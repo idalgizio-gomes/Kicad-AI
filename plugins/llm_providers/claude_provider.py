@@ -64,6 +64,28 @@ class ClaudeProvider(LLMProvider):
     def default_model(self) -> str:
         return "claude-opus-4-8"
 
+    def list_models(self) -> list[str]:
+        """Live GET /v1/models when a key is configured and the SDK/network
+        cooperate; falls back to the same verified static list the CLI
+        provider uses (KNOWN_CLAUDE_MODELS) — never raises, never returns
+        an empty list just because the live call failed."""
+        try:
+            from .claude_code_cli_provider import KNOWN_CLAUDE_MODELS
+        except ImportError:  # pragma: no cover - fallback for flat imports
+            from llm_providers.claude_code_cli_provider import KNOWN_CLAUDE_MODELS  # type: ignore
+
+        if anthropic is not None and self.api_key:
+            try:
+                client = anthropic.Anthropic(api_key=self.api_key)
+                page = client.models.list()
+                ids = [m.id for m in page]
+                if ids:
+                    return ids
+            except Exception:
+                pass  # any failure (auth, network, SDK shape) -> static fallback below
+
+        return list(KNOWN_CLAUDE_MODELS)
+
     # ------------------------------------------------------------------ #
     # Request mapping (plugin -> Anthropic)
     # ------------------------------------------------------------------ #

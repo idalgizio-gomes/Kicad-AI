@@ -72,6 +72,18 @@ class LLMProvider(ABC):
     def is_configured(self) -> bool:
         return bool(self.api_key)
 
+    def list_models(self) -> list[str]:
+        """Best-effort list of real, currently-usable model ids/aliases for
+        this provider — used by the GUI's model picker so the user chooses
+        from something that actually exists instead of typing a free-text
+        guess. Default: empty (unknown) — a subclass either queries its
+        provider's live /models endpoint, returns a small set of verified
+        aliases, or both with the live query as primary and the verified
+        set as a fallback. MUST NOT raise: any failure (missing key,
+        network, SDK differences) is the caller's cue to fall back to free
+        text entry, not a crash."""
+        return []
+
     @abstractmethod
     def send(
         self, messages: list[ChatMessage], tools: list[ToolSpec] | None = None
