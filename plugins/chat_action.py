@@ -149,6 +149,30 @@ def _build_system_prompt() -> str:
     return "\n".join(lines)
 
 
+# Default session cost-alert limit (USD-equivalent), used when the config
+# file doesn't set "cost_alert_limit_usd" explicitly. Only providers that
+# report a real per-call cost (currently ClaudeCodeCLIProvider) count toward
+# it — API-key providers bill separately and aren't metered by this plugin.
+_DEFAULT_COST_ALERT_LIMIT_USD = 1.0
+
+
+def _resolve_cost_alert_limit(cfg: dict) -> float | None:
+    """Reads ``cost_alert_limit_usd`` from the config file. Missing key ->
+    the default above; explicit ``null``/``0``/negative -> disabled
+    (``None``); anything non-numeric -> falls back to the default rather
+    than crashing chat startup over a typo in a hand-edited config file."""
+    if "cost_alert_limit_usd" not in cfg:
+        return _DEFAULT_COST_ALERT_LIMIT_USD
+    value = cfg.get("cost_alert_limit_usd")
+    if value is None:
+        return None
+    try:
+        value = float(value)
+    except (TypeError, ValueError):
+        return _DEFAULT_COST_ALERT_LIMIT_USD
+    return value if value > 0 else None
+
+
 def run_chat(parent=None) -> None:
     """Build the registry, provider factory, and system prompt, then open
     the chat dialog. Wrapped in a top-level try/except so any unexpected
@@ -158,6 +182,7 @@ def run_chat(parent=None) -> None:
         register_kicad_tools(registry)
 
         system_prompt = _build_system_prompt()
+        cost_alert_limit_usd = _resolve_cost_alert_limit(load_config())
 
         dialog = ChatDialog(
             parent,
@@ -167,6 +192,7 @@ def run_chat(parent=None) -> None:
             registry,
             run_tool_loop,
             system_prompt,
+            cost_alert_limit_usd,
         )
         try:
             dialog.ShowModal()

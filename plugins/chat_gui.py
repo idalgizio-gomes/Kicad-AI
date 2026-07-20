@@ -49,6 +49,11 @@ class ChatDialog(wx.Dialog):
     """Non-blocking chat dialog. All LLM/tool work runs on a worker thread and
     every UI mutation is marshalled back to the main thread via wx.CallAfter."""
 
+    # Fractions of the configured limit at which a one-time warning fires.
+    # 1.0 (and anything beyond) still fires exactly once — see
+    # _check_cost_alerts, not repeated on every subsequent turn.
+    _COST_ALERT_THRESHOLDS = (0.5, 0.8, 1.0)
+
     def __init__(
         self,
         parent,
@@ -58,6 +63,7 @@ class ChatDialog(wx.Dialog):
         registry,
         run_tool_loop,
         system_prompt,
+        cost_alert_limit_usd=None,
     ):
         super().__init__(
             parent,
@@ -79,6 +85,15 @@ class ChatDialog(wx.Dialog):
         self._provider_id = self._provider_ids[0] if self._provider_ids else None
         self._provider = None
         self._busy = False
+
+        # Cumulative cost-equivalent tracking for this chat session (see
+        # _recompute_session_cost). None disables the limit/alerts entirely
+        # but the running total is still shown whenever any provider reports
+        # a cost (currently only ClaudeCodeCLIProvider). Not persisted across
+        # dialog instances — a fresh chat window starts a fresh count.
+        self._cost_alert_limit_usd = cost_alert_limit_usd
+        self._session_cost_usd = 0.0
+        self._cost_alert_hit = set()
 
         self._build_ui()
         self._create_provider(self._provider_id)
@@ -140,12 +155,17 @@ class ChatDialog(wx.Dialog):
         bottom.Add(self._send_btn, 0, wx.ALIGN_CENTER_VERTICAL)
         outer.Add(bottom, 0, wx.EXPAND | wx.ALL, 8)
 
-        # Status line.
+        # Status + cumulative session cost, side by side.
+        status_row = wx.BoxSizer(wx.HORIZONTAL)
         self._status = wx.StaticText(panel, label=_("Ready."))
-        outer.Add(self._status, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
+        status_row.Add(self._status, 1, wx.ALIGN_CENTER_VERTICAL)
+        self._cost_label = wx.StaticText(panel, label="")
+        status_row.Add(self._cost_label, 0, wx.ALIGN_CENTER_VERTICAL)
+        outer.Add(status_row, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
 
         panel.SetSizer(outer)
         self._input.SetFocus()
+        self._update_cost_label()
 
     # -------------------------------------------------------- provider mgmt ---
     def _create_provider(self, provider_id, model=None):
@@ -263,8 +283,61 @@ class ChatDialog(wx.Dialog):
         self._messages = updated_messages
         for msg in updated_messages[old_len:]:
             self._render_message(msg)
+        self._recompute_session_cost()
         self._set_busy(False)
         self._set_status(_("Ready."))
+
+    def _recompute_session_cost(self):
+        """Sum cost_usd across every message's meta, not an incremental
+        running total — re-summing the whole (short-lived, per-dialog)
+        conversation is cheap and immune to double-counting bugs if this is
+        ever called more than once for the same turn."""
+        total = 0.0
+        for msg in self._messages:
+            meta = getattr(msg, "meta", None) or {}
+            cost = meta.get("cost_usd")
+            if isinstance(cost, (int, float)):
+                total += cost
+        self._session_cost_usd = total
+        self._update_cost_label()
+        self._check_cost_alerts()
+
+    def _update_cost_label(self):
+        if self._session_cost_usd <= 0 and self._cost_alert_limit_usd is None:
+            self._cost_label.SetLabel("")
+            return
+        if self._cost_alert_limit_usd:
+            text = _("Session cost: ${spent} / ${limit}").format(
+                spent=f"{self._session_cost_usd:.4f}",
+                limit=f"{self._cost_alert_limit_usd:.2f}",
+            )
+        else:
+            text = _("Session cost: ${spent}").format(
+                spent=f"{self._session_cost_usd:.4f}"
+            )
+        self._cost_label.SetLabel("   " + text)
+
+    def _check_cost_alerts(self):
+        """Fire each threshold at most once per dialog instance (session),
+        even if the total keeps climbing past it on later turns."""
+        limit = self._cost_alert_limit_usd
+        if not limit:
+            return
+        ratio = self._session_cost_usd / limit
+        for threshold in self._COST_ALERT_THRESHOLDS:
+            if ratio >= threshold and threshold not in self._cost_alert_hit:
+                self._cost_alert_hit.add(threshold)
+                pct = int(threshold * 100)
+                self._append_line(
+                    _(
+                        "[cost warning] {pct}% of session limit reached "
+                        "(${spent} / ${limit})."
+                    ).format(
+                        pct=pct,
+                        spent=f"{self._session_cost_usd:.4f}",
+                        limit=f"{limit:.2f}",
+                    )
+                )
 
     def _on_loop_update(self, text):
         """on_update callback passed to run_tool_loop; called from the worker
