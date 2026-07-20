@@ -485,13 +485,32 @@ class ChatDialog(wx.Dialog):
                     )
                 except Exception:
                     args = str(getattr(tool_call, "arguments", ""))
+
+                # Write actions (read_only=False) get a visibly stronger
+                # warning — different title, different icon, and an explicit
+                # "isto MODIFICA a placa" line up front — so the user can
+                # never mistake a mutation for a read-only query at a glance,
+                # even if they're skimming instead of reading every word.
+                is_write = getattr(defn, "read_only", True) is False
+                if is_write:
+                    title = _("⚠ Aprovar ALTERAÇÃO à placa?")
+                    icon = wx.ICON_WARNING
+                    warning_line = _(
+                        "ATENÇÃO: esta ação MODIFICA a placa aberta.\n\n"
+                    )
+                else:
+                    title = _("Aprovar ação?")
+                    icon = wx.ICON_QUESTION
+                    warning_line = ""
+
                 message = _(
-                    "O assistente quer executar a ação:\n\n"
+                    "{warning}O assistente quer executar a ação:\n\n"
                     "  {name}\n\n"
                     "{description}\n\n"
                     "Argumentos:\n{args}\n\n"
                     "Permitir esta ação?"
                 ).format(
+                    warning=warning_line,
                     name=tool_call.name,
                     description=description,
                     args=args,
@@ -499,8 +518,8 @@ class ChatDialog(wx.Dialog):
                 dlg = wx.MessageDialog(
                     self,
                     message,
-                    _("Aprovar ação?"),
-                    wx.YES_NO | wx.ICON_QUESTION | wx.NO_DEFAULT,
+                    title,
+                    wx.YES_NO | icon | wx.NO_DEFAULT,
                 )
                 result["ok"] = dlg.ShowModal() == wx.ID_YES
                 dlg.Destroy()
@@ -529,9 +548,16 @@ class ChatDialog(wx.Dialog):
                 # the turn never having happened.
                 self._append_line(_("[aviso] Resposta vazia do fornecedor."))
             for tc in tool_calls:
-                self._append_line(
-                    _("[ação] a propor: {name}").format(name=tc.name)
-                )
+                defn = self._registry.get(tc.name)
+                is_write = defn is not None and getattr(defn, "read_only", True) is False
+                if is_write:
+                    self._append_line(
+                        _("[ação] ⚠ a propor ALTERAÇÃO: {name}").format(name=tc.name)
+                    )
+                else:
+                    self._append_line(
+                        _("[ação] a propor: {name}").format(name=tc.name)
+                    )
             meta = getattr(msg, "meta", None) or {}
             cost_usd = meta.get("cost_usd")
             if isinstance(cost_usd, (int, float)):

@@ -63,6 +63,11 @@ try:  # pragma: no cover - import shim
 except ImportError:  # pragma: no cover - import shim
     from actions.kicad_tools import register_kicad_tools  # type: ignore[no-redef]
 
+try:  # pragma: no cover - import shim
+    from .actions.kicad_write_tools import register_kicad_write_tools
+except ImportError:  # pragma: no cover - import shim
+    from actions.kicad_write_tools import register_kicad_write_tools  # type: ignore[no-redef]
+
 # --- chat GUI --------------------------------------------------------------
 try:  # pragma: no cover - import shim
     from .chat_gui import ChatDialog
@@ -210,9 +215,15 @@ def _build_system_prompt() -> str:
         "You are the KiCad Chat Assistant, an AI assistant embedded inside "
         "the KiCad PCB design tool.",
         "You can propose actions via tools; every tool call requires "
-        "explicit user approval before execution.",
-        "All available tools are read-only in this version — you cannot "
-        "modify the board, schematic, or any files.",
+        "explicit user approval before execution — nothing runs silently.",
+        "Most tools are read-only (project info, component list, DRC/ERC). "
+        "A few tools modify the board directly (move/rotate a footprint, "
+        "change a footprint's value) — use those ONLY when the user clearly "
+        "asked for that specific change, never speculatively, and always "
+        "state exactly what you are about to change before calling the tool.",
+        "There is no way to add, delete, or rewire components/tracks/nets "
+        "yet, and no schematic-editing tool exists — say so plainly if asked "
+        "for something outside this scope instead of attempting a workaround.",
         "Be concise and technical. When you don't have enough information, "
         "call the appropriate tool instead of guessing.",
     ]
@@ -280,6 +291,7 @@ def run_chat(parent=None) -> None:
 
         registry = ActionRegistry()
         register_kicad_tools(registry)
+        register_kicad_write_tools(registry)
 
         system_prompt = _build_system_prompt()
         cost_alert_limit_usd = _resolve_cost_alert_limit(load_config())
