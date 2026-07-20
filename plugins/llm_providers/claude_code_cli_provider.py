@@ -17,44 +17,78 @@ is no optional pip dependency to guard against here (unlike the SDK-based
 providers); the only thing that can be "missing" is the external binary,
 checked lazily in `is_configured()`/`send()`.
 
-HONEST LIMITATION (documented, not hidden): headless `claude -p` runs
+TOOL CALLING (text-convention based, not native): headless `claude -p` runs
 Claude Code's own agent loop internally, not a raw single completion call —
 it has no equivalent of the Messages API's `tools` parameter that lets the
-CALLER define custom tools and get raw `tool_use` blocks back to execute
-under this plugin's mandatory approval gate (see `actions/framework.py`,
-`run_tool_loop`). Routing this provider's tool calls through the CLI's own
-`--mcp-config` mechanism instead would let Claude Code invoke tools
-*without* going through that approval gate, which would silently defeat
-its non-negotiable design. So this provider ALWAYS ignores `tools` and
-answers in plain chat only — it cannot query the PCB board via the
-plugin's own actions. Use the API-key `ClaudeProvider` (claude_provider.py)
-when PCB tool access is needed; use this provider for plain chat/Q&A that
-doesn't need board data.
+CALLER define custom tools and get raw `tool_use` blocks back structurally.
+Two paths were considered:
+  1. The CLI's own `--mcp-config` mechanism, letting Claude Code invoke
+     tools *without* going through this plugin's mandatory approval gate
+     (actions/framework.py, run_tool_loop) — rejected, it would silently
+     defeat that gate's non-negotiable design.
+  2. A TEXT CONVENTION: when `tools` is passed, the prompt instructs the
+     model to emit a fenced ```action code block containing a single JSON
+     object ({"name": ..., "arguments": {...}}) if it wants to propose a
+     tool call, instead of just describing it in prose. `send()` parses any
+     such block out of the CLI's response text and turns it into a real
+     ToolCall with stop_reason="tool_use" — which then flows through the
+     EXACT SAME execute_tool_call()/approval-gate path as every other
+     provider's native tool_use blocks. This is less reliable than a real
+     structured API (a model could ignore the convention, or the parse
+     could fail), so every failure mode below degrades to plain text
+     instead of silently dropping the proposed action — see
+     _extract_action_block().
+
+CONFIRMED, REAL CAVEATS (found via actual `claude` CLI runs, not
+speculation): (a) the parameter schema, not just each tool's name and
+description, has to be spelled out verbatim in the prompt
+(_build_tools_instructions) — an early version without it had the model
+invent plausible-but-wrong argument names (e.g. "x"/"y" instead of a
+schema's required "x_mm"/"y_mm"), which would have failed at execution
+time; fixed by including the full JSON schema per tool. (b) `claude -p` is
+a FULL Claude Code agent, not a bare completion endpoint — it reads
+whatever real CWD the KiCad process happens to have (CLAUDE.md, git
+status, project files) and can occasionally let that ambient context leak
+into the reply instead of staying strictly inside the simulated
+conversation this module builds. Not something this module can fully
+suppress (there is no "ignore your surroundings" flag for headless mode);
+noted here so a stray reply mentioning unrelated local files is recognised
+as this, not a new bug.
 """
 
 from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
+import uuid
 from typing import Any
 
 try:
-    from .base import ChatMessage, ChatResponse, LLMProvider, ProviderError, ToolSpec
+    from .base import (
+        ChatMessage,
+        ChatResponse,
+        LLMProvider,
+        ProviderError,
+        ToolCall,
+        ToolSpec,
+    )
 except ImportError:  # pragma: no cover - fallback for test import via conftest
     from llm_providers.base import (  # type: ignore
         ChatMessage,
         ChatResponse,
         LLMProvider,
         ProviderError,
+        ToolCall,
         ToolSpec,
     )
 
 # i18n: every string literal below is ALREADY Portuguese — wrapping in _()
-# must not change any wording, only make it translatable (existing tests
-# assert on exact pt substrings). See chat_gui.py's `_()` docstring for why
-# this is a fresh-lookup trampoline rather than `from ..i18n import _`.
+# must not change any wording, only make it translatable. See chat_gui.py's
+# `_()` docstring for why this is a fresh-lookup trampoline rather than
+# `from ..i18n import _`.
 try:  # pragma: no cover - import shim
     from .. import i18n as _i18n
 except ImportError:  # pragma: no cover - import shim
@@ -66,6 +100,12 @@ def _(message: str) -> str:  # noqa: N807 - conventional gettext alias name
 
 
 _TIMEOUT_S = 180.0
+
+# Matches a fenced ```action ... ``` block anywhere in the response text.
+# DOTALL so the JSON body (which may itself contain newlines) is captured
+# whole; re.IGNORECASE so "```Action"/"```ACTION" still match — models are
+# not perfectly consistent about casing even when told the exact fence tag.
+_ACTION_BLOCK_RE = re.compile(r"```action\s*\n(.*?)```", re.DOTALL | re.IGNORECASE)
 
 
 def find_claude_cli() -> str | None:
@@ -94,6 +134,39 @@ def find_claude_cli() -> str | None:
     return None
 
 
+def _extract_action_block(text: str) -> tuple[str, ToolCall | None]:
+    """Look for a ```action fenced JSON block in `text`.
+
+    Returns (remaining_text_with_block_removed, ToolCall_or_None). Any
+    failure to find/parse a valid block — no fence at all, malformed JSON,
+    missing "name" key — returns (text, None) unchanged rather than raising:
+    a text-convention parse miss must degrade to "the model just replied in
+    plain text", never crash the turn.
+    """
+    match = _ACTION_BLOCK_RE.search(text)
+    if not match:
+        return text, None
+
+    raw_json = match.group(1).strip()
+    try:
+        payload = json.loads(raw_json)
+    except json.JSONDecodeError:
+        return text, None
+
+    if not isinstance(payload, dict):
+        return text, None
+    name = payload.get("name")
+    if not isinstance(name, str) or not name:
+        return text, None
+    arguments = payload.get("arguments")
+    if not isinstance(arguments, dict):
+        arguments = {}
+
+    remaining = (text[: match.start()] + text[match.end() :]).strip()
+    tool_call = ToolCall(id=f"cli_{uuid.uuid4().hex[:12]}", name=name, arguments=arguments)
+    return remaining, tool_call
+
+
 class ClaudeCodeCLIProvider(LLMProvider):
     """Talk to the local `claude` CLI in headless mode and translate its
     JSON output to the plugin's provider-agnostic dataclasses."""
@@ -115,27 +188,102 @@ class ClaudeCodeCLIProvider(LLMProvider):
     # Request mapping (plugin conversation -> a single CLI prompt)
     # ------------------------------------------------------------------ #
     @staticmethod
-    def _build_prompt(messages: list[ChatMessage]) -> str:
+    def _build_tools_instructions(tools: list[ToolSpec]) -> str:
+        lines = [
+            _(
+                "Tens acesso às seguintes ações (ferramentas). Cada uma exige "
+                "aprovação explícita do utilizador antes de ser executada — "
+                "propor uma ação é seguro, só é executada se o utilizador "
+                "aceitar."
+            ),
+            _(
+                "Para propor UMA ação, responde com um bloco de código com a "
+                "etiqueta exata 'action' contendo um único objeto JSON com as "
+                "chaves \"name\" e \"arguments\", por exemplo:"
+            ),
+            '```action\n{"name": "nome_da_ferramenta", "arguments": {"chave": "valor"}}\n```',
+            _(
+                "Usa no máximo UM bloco 'action' por resposta. Se não precisares "
+                "de nenhuma ferramenta, responde normalmente em texto, sem "
+                "nenhum bloco 'action'."
+            ),
+            _("Ferramentas disponíveis:"),
+        ]
+        for spec in tools:
+            # The full parameters JSON schema is included, not just
+            # name+description — confirmed necessary by a real end-to-end
+            # test: without it, the model invented plausible-but-wrong
+            # argument names (e.g. "x"/"y" instead of the schema's required
+            # "x_mm"/"y_mm"), which would have failed at execution time.
+            # Text-convention tool calling has no schema-enforcement of its
+            # own (unlike a native API's structured tool_use), so the
+            # instructions have to spell the exact keys out.
+            schema_json = json.dumps(spec.parameters, ensure_ascii=False)
+            lines.append(f"- {spec.name}: {spec.description}\n  parameters: {schema_json}")
+        return "\n".join(lines)
+
+    @staticmethod
+    def _build_prompt(
+        messages: list[ChatMessage], tools: list[ToolSpec] | None = None
+    ) -> str:
         """Flatten the conversation into one prompt string.
 
         Headless `claude -p` is a one-shot call, not a multi-turn API
         conversation replayed as structured messages — each invocation
-        starts a fresh Claude Code session. Prior turns are rendered as
-        plain transcript text ahead of the final user turn so the model
-        still has conversational context, at the cost of it being text the
-        model has to re-read (not free, but there is no other channel for
-        it in this mode)."""
+        starts a fresh Claude Code session. Prior turns (including tool
+        proposals and their results, for a multi-round tool loop) are
+        rendered as plain transcript text ahead of the final turn so the
+        model still has conversational context, at the cost of it being
+        text the model has to re-read (not free, but there is no other
+        channel for it in this mode).
+        """
         system_parts = [m.content for m in messages if m.role == "system" and m.content]
-        transcript = [m for m in messages if m.role in ("user", "assistant") and m.content]
+
+        # tool_call_id -> tool name, so a "tool" role message (a result) can
+        # be rendered with a readable label instead of a bare id.
+        tool_call_names: dict[str, str] = {}
+        for m in messages:
+            if m.role == "assistant":
+                for tc in m.tool_calls:
+                    tool_call_names[tc.id] = tc.name
+
+        transcript: list[tuple[str, str]] = []
+        for m in messages:
+            if m.role == "user" and m.content:
+                transcript.append(("Utilizador", m.content))
+            elif m.role == "assistant" and (m.content or m.tool_calls):
+                text = m.content or ""
+                for tc in m.tool_calls:
+                    text += (
+                        f"\n[ação anteriormente proposta: {tc.name}"
+                        f"({json.dumps(tc.arguments, ensure_ascii=False)})]"
+                    )
+                transcript.append(("Assistente", text))
+            elif m.role == "tool":
+                label = tool_call_names.get(m.tool_call_id or "", "ferramenta")
+                transcript.append(("Resultado", f"[{label}] {m.content}"))
 
         parts: list[str] = []
         if system_parts:
             parts.append("\n\n".join(system_parts))
-        for m in transcript[:-1]:
-            speaker = "Utilizador" if m.role == "user" else "Assistente"
-            parts.append(f"{speaker}: {m.content}")
+        if tools:
+            parts.append(ClaudeCodeCLIProvider._build_tools_instructions(tools))
+
         if transcript:
-            parts.append(transcript[-1].content)
+            # The final USER turn stands out unprefixed (the model's actual
+            # instruction for this call). Everything else — including a
+            # trailing tool RESULT when this call is a tool-loop
+            # continuation, not a fresh user question — keeps its label, so
+            # the model can tell "here is what happened" from "answer this
+            # now" apart.
+            last_speaker, last_text = transcript[-1]
+            head = transcript[:-1]
+            for speaker, text in head:
+                parts.append(f"{speaker}: {text}")
+            if last_speaker == "Utilizador":
+                parts.append(last_text)
+            else:
+                parts.append(f"{last_speaker}: {last_text}")
 
         return "\n\n".join(parts)
 
@@ -148,13 +296,15 @@ class ClaudeCodeCLIProvider(LLMProvider):
         cli_path = find_claude_cli()
         if cli_path is None:
             raise ProviderError(
-                "CLI 'claude' não encontrado. Instale com: "
-                "npm install -g @anthropic-ai/claude-code"
+                _(
+                    "CLI 'claude' não encontrado. Instale com: "
+                    "npm install -g @anthropic-ai/claude-code"
+                )
             )
 
-        prompt = self._build_prompt(messages)
+        prompt = self._build_prompt(messages, tools)
         if not prompt.strip():
-            raise ProviderError("Sem conteúdo para enviar ao Claude Code.")
+            raise ProviderError(_("Sem conteúdo para enviar ao Claude Code."))
 
         try:
             # The prompt is piped via stdin (`-p` with no argument), NOT
@@ -194,16 +344,20 @@ class ClaudeCodeCLIProvider(LLMProvider):
                 creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
             )
         except FileNotFoundError as exc:
-            raise ProviderError(f"CLI 'claude' não encontrado: {exc}") from exc
+            raise ProviderError(_("CLI 'claude' não encontrado: {err}").format(err=exc)) from exc
         except subprocess.TimeoutExpired as exc:
             raise ProviderError(
-                f"O Claude Code CLI não respondeu em {_TIMEOUT_S:.0f}s."
+                _("O Claude Code CLI não respondeu em {timeout:.0f}s.").format(
+                    timeout=_TIMEOUT_S
+                )
             ) from exc
 
         if result.returncode != 0:
             detail = (result.stderr or result.stdout or "").strip()
             raise ProviderError(
-                f"Claude Code CLI terminou com erro (código {result.returncode})"
+                _("Claude Code CLI terminou com erro (código {code})").format(
+                    code=result.returncode
+                )
                 + (f": {detail}" if detail else ".")
             )
 
@@ -212,27 +366,45 @@ class ClaudeCodeCLIProvider(LLMProvider):
             payload = json.loads(result.stdout)
         except json.JSONDecodeError as exc:
             raise ProviderError(
-                "Resposta inesperada do Claude Code CLI (saída não é JSON válido): "
-                f"{exc}"
+                _(
+                    "Resposta inesperada do Claude Code CLI (saída não é JSON "
+                    "válido): {err}"
+                ).format(err=exc)
             ) from exc
 
         if not isinstance(payload, dict):
-            raise ProviderError("Resposta inesperada do Claude Code CLI (JSON não é um objeto).")
+            raise ProviderError(
+                _("Resposta inesperada do Claude Code CLI (JSON não é um objeto).")
+            )
 
         if payload.get("is_error"):
             raise ProviderError(
-                f"Claude Code CLI reportou erro: {payload.get('result') or 'desconhecido'}"
+                _("Claude Code CLI reportou erro: {result}").format(
+                    result=payload.get("result") or _("desconhecido")
+                )
             )
 
         text = payload.get("result")
         if not isinstance(text, str):
-            raise ProviderError("Claude Code CLI não devolveu texto de resposta.")
+            raise ProviderError(_("Claude Code CLI não devolveu texto de resposta."))
 
         cost_usd = payload.get("total_cost_usd")
+        cost_usd = cost_usd if isinstance(cost_usd, (int, float)) else None
+
+        remaining_text, tool_call = _extract_action_block(text)
+        if tool_call is not None:
+            return ChatResponse(
+                content=remaining_text,
+                tool_calls=[tool_call],
+                raw=payload,
+                stop_reason="tool_use",
+                cost_usd=cost_usd,
+            )
+
         return ChatResponse(
             content=text,
             tool_calls=[],
             raw=payload,
             stop_reason="end",
-            cost_usd=cost_usd if isinstance(cost_usd, (int, float)) else None,
+            cost_usd=cost_usd,
         )
