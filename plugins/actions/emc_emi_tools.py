@@ -54,7 +54,7 @@ _PACKAGE_NAME = "_sibling_emc_emi"
 # guide) — resolved relative to KiCad's Documents folder at call time, not
 # hardcoded to one KiCad version, so an upgrade doesn't silently break this
 # tool the way it would a hardcoded 9.0/10.0 path.
-_SIBLING_IDENTIFIER = "com_github_idalgizio-gomes_emc-emi-kicad"
+_SIBLING_IDENTIFIER = "com_github_idalgizio-gomes_kicad-emc-emi"
 
 
 def _find_sibling_plugins_dir() -> Path:
