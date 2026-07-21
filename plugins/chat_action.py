@@ -94,6 +94,25 @@ try:  # pragma: no cover - import shim
 except ImportError:  # pragma: no cover - import shim
     from actions.kicad_schematic_tools import register_schematic_tools  # type: ignore[no-redef]
 
+# Third-party (PCM-installed) sibling plugins — same "safe to call even when
+# not installed" contract as the forks above, resolved via
+# _sibling_plugin.py's find_pcm_plugin_dir() instead of a nested plugins/
+# subfolder junction (see each module's own docstring).
+try:  # pragma: no cover - import shim
+    from .actions.kicad_parasitics_tools import register_kicad_parasitics_tools
+except ImportError:  # pragma: no cover - import shim
+    from actions.kicad_parasitics_tools import register_kicad_parasitics_tools  # type: ignore[no-redef]
+
+try:  # pragma: no cover - import shim
+    from .actions.board2pdf_tools import register_board2pdf_tools
+except ImportError:  # pragma: no cover - import shim
+    from actions.board2pdf_tools import register_board2pdf_tools  # type: ignore[no-redef]
+
+try:  # pragma: no cover - import shim
+    from .actions.jlcpcb_tools import register_jlcpcb_tools
+except ImportError:  # pragma: no cover - import shim
+    from actions.jlcpcb_tools import register_jlcpcb_tools  # type: ignore[no-redef]
+
 # --- chat GUI --------------------------------------------------------------
 try:  # pragma: no cover - import shim
     from .chat_gui import ChatDialog
@@ -293,9 +312,15 @@ def _build_system_prompt() -> str:
         "asked for that specific change, never speculatively, and always "
         "state exactly what you are about to do before calling the tool.",
         "Some tools depend on sibling plugins or external tools (EMC-EMI "
-        "Analyzer, LibForge, KiKit, FastHenry2/FastCap2) that may not be "
-        "installed on this user's machine — if a tool call reports one is "
-        "missing, relay that honestly instead of pretending it worked.",
+        "Analyzer, LibForge, KiKit, FastHenry2/FastCap2, and third-party "
+        "PCM-installed plugins: KiCad-Parasitics for resistance/impedance "
+        "path analysis, Board2Pdf for PDF export, JLC-Plugin-for-KiCad for "
+        "JLCPCB fabrication files) that may not be installed on this user's "
+        "machine — if a tool call reports one is missing, relay that "
+        "honestly instead of pretending it worked. These third-party tools "
+        "are NOT this project's own code — treat their results as coming "
+        "from an external plugin, and never claim broader KiCad-wide "
+        "capability than the specific tools actually registered.",
         "IMPORTANT limitations to always state honestly when relevant: PCB "
         "tools mutate the LIVE board in the open PCB editor (undoable via "
         "Ctrl+Z, never auto-saved — the user must save with Ctrl+S). "
@@ -380,6 +405,9 @@ def run_chat(parent=None) -> None:
         register_libforge_tools(registry)
         register_kikit_tools(registry)
         register_schematic_tools(registry)
+        register_kicad_parasitics_tools(registry)
+        register_board2pdf_tools(registry)
+        register_jlcpcb_tools(registry)
 
         system_prompt = _build_system_prompt()
         cost_alert_limit_usd = _resolve_cost_alert_limit(load_config())

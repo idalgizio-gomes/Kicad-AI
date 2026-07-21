@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import importlib
 import importlib.util
+import os
 import sys
 import types
 from pathlib import Path
@@ -48,6 +49,38 @@ def _ensure_synthetic_package(unique_name: str, plugins_dir: Path) -> None:
     pkg.__path__ = [str(plugins_dir)]
     pkg.__package__ = unique_name
     sys.modules[unique_name] = pkg
+
+
+def find_pcm_plugin_dir(identifier: str) -> Path:
+    """Resolve a THIRD-PARTY (PCM-installed, not our own fork) sibling
+    plugin's directory across installed KiCad versions, newest first.
+
+    Different layout than ``_find_sibling_plugins_dir()``-style helpers used
+    for our own forks (LibForge, EMC-EMI): those live in a git repo with a
+    nested ``plugins/`` subfolder that a junction points at. A plugin
+    installed via KiCad's own Plugin and Content Manager (PCM) has no such
+    nesting — ``Documents\\KiCad\\<version>\\3rdparty\\plugins\\<identifier>\\``
+    IS the package root (its ``__init__.py`` sits directly in it). Passing
+    that folder itself as ``plugins_dir`` to ``load_sibling_module`` works
+    identically either way — the synthetic-package trick only cares that
+    ``__path__`` points at a real directory containing importable submodules.
+    """
+    documents = Path(os.path.expanduser("~")) / "Documents" / "KiCad"
+    if not documents.is_dir():
+        raise SiblingPluginNotFoundError(str(documents))
+
+    candidates = sorted(
+        (p for p in documents.iterdir() if p.is_dir()),
+        key=lambda p: p.name,
+        reverse=True,
+    )
+    for version_dir in candidates:
+        plugin_dir = version_dir / "3rdparty" / "plugins" / identifier
+        if plugin_dir.is_dir():
+            return plugin_dir
+    raise SiblingPluginNotFoundError(
+        f"PCM plugin '{identifier}' not found under {documents}"
+    )
 
 
 def load_sibling_module(unique_package_name: str, plugins_dir: Path, submodule: str):
