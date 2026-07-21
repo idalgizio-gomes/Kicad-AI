@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KiCad Chat Assistant VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-21 21:34+0100\n"
+"POT-Creation-Date: 2026-07-21 21:41+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: nl\n"
@@ -38,12 +38,12 @@ msgstr ""
 msgid "Ficheiro binário não suportado (não é imagem, PDF, nem texto legível)."
 msgstr ""
 
-#: chat_action.py:262
+#: chat_action.py:267
 #, python-brace-format
 msgid "Erro inesperado ao criar o provider '{provider_id}': {exc}"
 msgstr ""
 
-#: chat_action.py:281
+#: chat_action.py:286
 #, python-brace-format
 msgid ""
 "{label} não encontrou o comando '{cli}' no PATH.\n"
@@ -53,11 +53,11 @@ msgid ""
 "'{cli} login', se existir esse comando) e volte a selecionar o provider."
 msgstr ""
 
-#: chat_action.py:291 chat_action.py:304
+#: chat_action.py:296 chat_action.py:309
 msgid "Provedor não configurado"
 msgstr ""
 
-#: chat_action.py:296
+#: chat_action.py:301
 #, python-brace-format
 msgid ""
 "{label} não tem uma API key configurada.\n"
@@ -336,17 +336,17 @@ msgid ""
 msgstr ""
 
 #: actions/board2pdf_tools.py:115 actions/board2pdf_tools.py:236
-#: actions/coil_creator_tools.py:146 actions/jlcpcb_tools.py:140
-#: actions/kicad_schematic_tools.py:151 actions/kicad_write_tools.py:69
-#: actions/kicad_write_tools.py:478 actions/pinout_generator_tools.py:125
-#: actions/round_tracks_tools.py:184
+#: actions/coil_creator_tools.py:146 actions/coil_generators_tools.py:146
+#: actions/jlcpcb_tools.py:140 actions/kicad_schematic_tools.py:151
+#: actions/kicad_write_tools.py:69 actions/kicad_write_tools.py:478
+#: actions/pinout_generator_tools.py:125 actions/round_tracks_tools.py:184
 msgid "pcbnew indisponível — esta ferramenta só funciona dentro do KiCad"
 msgstr ""
 
 #: actions/board2pdf_tools.py:120 actions/coil_creator_tools.py:151
-#: actions/jlcpcb_tools.py:145 actions/kicad_schematic_tools.py:156
-#: actions/kicad_write_tools.py:74 actions/pinout_generator_tools.py:130
-#: actions/round_tracks_tools.py:189
+#: actions/coil_generators_tools.py:151 actions/jlcpcb_tools.py:145
+#: actions/kicad_schematic_tools.py:156 actions/kicad_write_tools.py:74
+#: actions/pinout_generator_tools.py:130 actions/round_tracks_tools.py:189
 msgid "Nenhum board KiCad está atualmente aberto"
 msgstr ""
 
@@ -465,6 +465,78 @@ msgid ""
 "camada(s), {turns} volta(s)/camada, diâmetro exterior {outer:.3f} mm). A "
 "referência ficou 'REF**' (mesmo comportamento do plugin original) — "
 "anote/renumere manualmente se colidir com outra bobina já na placa. "
+"Guarde a placa (Ctrl+S) para persistir a alteração."
+msgstr ""
+
+#: actions/coil_generators_tools.py:134
+msgid ""
+"O plugin Coil Generators não está instalado nesta máquina — esta "
+"ferramenta precisa dele."
+msgstr ""
+
+#: actions/coil_generators_tools.py:192
+#, python-brace-format
+msgid ""
+"Argumento 'coil_type' inválido ou em falta: '{value}' (use um de: "
+"{valid})."
+msgstr ""
+
+#: actions/coil_generators_tools.py:198 actions/kicad_schematic_tools.py:546
+#: actions/kicad_schematic_tools.py:702 actions/kicad_write_tools.py:101
+#: actions/pinout_generator_tools.py:167
+msgid "Falta o argumento 'reference'."
+msgstr ""
+
+#: actions/coil_generators_tools.py:204 actions/kicad_schematic_tools.py:387
+#: actions/kicad_schematic_tools.py:552 actions/kicad_write_tools.py:115
+#: actions/kicad_write_tools.py:229 actions/kicad_write_tools.py:395
+#, python-brace-format
+msgid "Argumentos 'x_mm'/'y_mm' inválidos: {err}"
+msgstr ""
+
+#: actions/coil_generators_tools.py:210 actions/kicad_schematic_tools.py:558
+#: actions/kicad_write_tools.py:236
+#, python-brace-format
+msgid "Argumento 'rotation_deg' inválido: {err}"
+msgstr ""
+
+#: actions/coil_generators_tools.py:215
+#, python-brace-format
+msgid "Argumento 'parameters' deve ser um objeto {página: {nome: valor}}."
+msgstr ""
+
+#: actions/coil_generators_tools.py:220 actions/kicad_write_tools.py:219
+#, python-brace-format
+msgid "Já existe um componente com a referência '{reference}' na placa."
+msgstr ""
+
+#: actions/coil_generators_tools.py:231
+#, python-brace-format
+msgid "Erro ao carregar o Coil Generators: {err}"
+msgstr ""
+
+#: actions/coil_generators_tools.py:238
+#, python-brace-format
+msgid "'parameters[{page}]' deve ser um objeto {{nome: valor}}."
+msgstr ""
+
+#: actions/coil_generators_tools.py:247
+#, python-brace-format
+msgid ""
+"Parâmetro desconhecido ('{page}', '{name}') para coil_type='{coil_type}'."
+" Parâmetros disponíveis:\n"
+"{available}"
+msgstr ""
+
+#: actions/coil_generators_tools.py:261
+#, python-brace-format
+msgid "Erro ao gerar a bobina ({coil_type}): {messages}"
+msgstr ""
+
+#: actions/coil_generators_tools.py:279
+#, python-brace-format
+msgid ""
+"Bobina '{coil_type}' criada como {reference} em ({x:.3f}, {y:.3f}) mm. "
 "Guarde a placa (Ctrl+S) para persistir a alteração."
 msgstr ""
 
@@ -762,13 +834,6 @@ msgstr ""
 msgid "Falta o argumento 'text'."
 msgstr ""
 
-#: actions/kicad_schematic_tools.py:387 actions/kicad_schematic_tools.py:552
-#: actions/kicad_write_tools.py:115 actions/kicad_write_tools.py:229
-#: actions/kicad_write_tools.py:395
-#, python-brace-format
-msgid "Argumentos 'x_mm'/'y_mm' inválidos: {err}"
-msgstr ""
-
 #: actions/kicad_schematic_tools.py:393
 #, python-brace-format
 msgid "Argumento 'kind' inválido: '{kind}' (use 'local' ou 'global')."
@@ -817,16 +882,6 @@ msgstr ""
 #: actions/kicad_schematic_tools.py:543 actions/libforge_tools.py:281
 #: actions/libforge_tools.py:379
 msgid "Falta o argumento 'entry_name'."
-msgstr ""
-
-#: actions/kicad_schematic_tools.py:546 actions/kicad_schematic_tools.py:702
-#: actions/kicad_write_tools.py:101 actions/pinout_generator_tools.py:167
-msgid "Falta o argumento 'reference'."
-msgstr ""
-
-#: actions/kicad_schematic_tools.py:558 actions/kicad_write_tools.py:236
-#, python-brace-format
-msgid "Argumento 'rotation_deg' inválido: {err}"
 msgstr ""
 
 #: actions/kicad_schematic_tools.py:566
@@ -927,11 +982,6 @@ msgstr ""
 
 #: actions/kicad_write_tools.py:214
 msgid "Falta o argumento 'footprint_name'."
-msgstr ""
-
-#: actions/kicad_write_tools.py:219
-#, python-brace-format
-msgid "Já existe um componente com a referência '{reference}' na placa."
 msgstr ""
 
 #: actions/kicad_write_tools.py:243

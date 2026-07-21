@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KiCad Chat Assistant VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-21 21:34+0100\n"
+"POT-Creation-Date: 2026-07-21 21:41+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: pt\n"
@@ -38,12 +38,12 @@ msgstr "PDF demasiado grande ({size} KB, limite {limit} KB)."
 msgid "Ficheiro binário não suportado (não é imagem, PDF, nem texto legível)."
 msgstr "Ficheiro binário não suportado (não é imagem, PDF, nem texto legível)."
 
-#: chat_action.py:262
+#: chat_action.py:267
 #, python-brace-format
 msgid "Erro inesperado ao criar o provider '{provider_id}': {exc}"
 msgstr "Erro inesperado ao criar o provider '{provider_id}': {exc}"
 
-#: chat_action.py:281
+#: chat_action.py:286
 #, python-brace-format
 msgid ""
 "{label} não encontrou o comando '{cli}' no PATH.\n"
@@ -58,11 +58,11 @@ msgstr ""
 "Depois, autentique-se com a sua conta correndo '{cli}' num terminal (ou "
 "'{cli} login', se existir esse comando) e volte a selecionar o provider."
 
-#: chat_action.py:291 chat_action.py:304
+#: chat_action.py:296 chat_action.py:309
 msgid "Provedor não configurado"
 msgstr "Provedor não configurado"
 
-#: chat_action.py:296
+#: chat_action.py:301
 #, python-brace-format
 msgid ""
 "{label} não tem uma API key configurada.\n"
@@ -366,17 +366,17 @@ msgstr ""
 "precisa dele."
 
 #: actions/board2pdf_tools.py:115 actions/board2pdf_tools.py:236
-#: actions/coil_creator_tools.py:146 actions/jlcpcb_tools.py:140
-#: actions/kicad_schematic_tools.py:151 actions/kicad_write_tools.py:69
-#: actions/kicad_write_tools.py:478 actions/pinout_generator_tools.py:125
-#: actions/round_tracks_tools.py:184
+#: actions/coil_creator_tools.py:146 actions/coil_generators_tools.py:146
+#: actions/jlcpcb_tools.py:140 actions/kicad_schematic_tools.py:151
+#: actions/kicad_write_tools.py:69 actions/kicad_write_tools.py:478
+#: actions/pinout_generator_tools.py:125 actions/round_tracks_tools.py:184
 msgid "pcbnew indisponível — esta ferramenta só funciona dentro do KiCad"
 msgstr "pcbnew indisponível — esta ferramenta só funciona dentro do KiCad"
 
 #: actions/board2pdf_tools.py:120 actions/coil_creator_tools.py:151
-#: actions/jlcpcb_tools.py:145 actions/kicad_schematic_tools.py:156
-#: actions/kicad_write_tools.py:74 actions/pinout_generator_tools.py:130
-#: actions/round_tracks_tools.py:189
+#: actions/coil_generators_tools.py:151 actions/jlcpcb_tools.py:145
+#: actions/kicad_schematic_tools.py:156 actions/kicad_write_tools.py:74
+#: actions/pinout_generator_tools.py:130 actions/round_tracks_tools.py:189
 msgid "Nenhum board KiCad está atualmente aberto"
 msgstr "Nenhum board KiCad está atualmente aberto"
 
@@ -520,6 +520,86 @@ msgstr ""
 "referência ficou 'REF**' (mesmo comportamento do plugin original) — "
 "anote/renumere manualmente se colidir com outra bobina já na placa. "
 "Guarde a placa (Ctrl+S) para persistir a alteração."
+
+#: actions/coil_generators_tools.py:134
+#, fuzzy
+msgid ""
+"O plugin Coil Generators não está instalado nesta máquina — esta "
+"ferramenta precisa dele."
+msgstr ""
+"O plugin LibForge não está instalado nesta máquina — esta ferramenta "
+"precisa dele."
+
+#: actions/coil_generators_tools.py:192
+#, fuzzy, python-brace-format
+msgid ""
+"Argumento 'coil_type' inválido ou em falta: '{value}' (use um de: "
+"{valid})."
+msgstr "Argumento 'kind' inválido ou em falta (use 'local' ou 'global')."
+
+#: actions/coil_generators_tools.py:198 actions/kicad_schematic_tools.py:546
+#: actions/kicad_schematic_tools.py:702 actions/kicad_write_tools.py:101
+#: actions/pinout_generator_tools.py:167
+msgid "Falta o argumento 'reference'."
+msgstr "Falta o argumento 'reference'."
+
+#: actions/coil_generators_tools.py:204 actions/kicad_schematic_tools.py:387
+#: actions/kicad_schematic_tools.py:552 actions/kicad_write_tools.py:115
+#: actions/kicad_write_tools.py:229 actions/kicad_write_tools.py:395
+#, python-brace-format
+msgid "Argumentos 'x_mm'/'y_mm' inválidos: {err}"
+msgstr "Argumentos 'x_mm'/'y_mm' inválidos: {err}"
+
+#: actions/coil_generators_tools.py:210 actions/kicad_schematic_tools.py:558
+#: actions/kicad_write_tools.py:236
+#, fuzzy, python-brace-format
+msgid "Argumento 'rotation_deg' inválido: {err}"
+msgstr "Argumento 'angle_deg' inválido: {err}"
+
+#: actions/coil_generators_tools.py:215
+#, python-brace-format
+msgid "Argumento 'parameters' deve ser um objeto {página: {nome: valor}}."
+msgstr "Argumento 'parameters' deve ser um objeto {página: {nome: valor}}."
+
+#: actions/coil_generators_tools.py:220 actions/kicad_write_tools.py:219
+#, fuzzy, python-brace-format
+msgid "Já existe um componente com a referência '{reference}' na placa."
+msgstr "Componente '{reference}' não encontrado na placa."
+
+#: actions/coil_generators_tools.py:231
+#, fuzzy, python-brace-format
+msgid "Erro ao carregar o Coil Generators: {err}"
+msgstr "Erro ao executar {name}: {err}"
+
+#: actions/coil_generators_tools.py:238
+#, python-brace-format
+msgid "'parameters[{page}]' deve ser um objeto {{nome: valor}}."
+msgstr "'parameters[{page}]' deve ser um objeto {{nome: valor}}."
+
+#: actions/coil_generators_tools.py:247
+#, python-brace-format
+msgid ""
+"Parâmetro desconhecido ('{page}', '{name}') para coil_type='{coil_type}'."
+" Parâmetros disponíveis:\n"
+"{available}"
+msgstr ""
+"Parâmetro desconhecido ('{page}', '{name}') para coil_type='{coil_type}'."
+" Parâmetros disponíveis:\n"
+"{available}"
+
+#: actions/coil_generators_tools.py:261
+#, python-brace-format
+msgid "Erro ao gerar a bobina ({coil_type}): {messages}"
+msgstr "Erro ao gerar a bobina ({coil_type}): {messages}"
+
+#: actions/coil_generators_tools.py:279
+#, fuzzy, python-brace-format
+msgid ""
+"Bobina '{coil_type}' criada como {reference} em ({x:.3f}, {y:.3f}) mm. "
+"Guarde a placa (Ctrl+S) para persistir a alteração."
+msgstr ""
+"{reference} movido de ({old_x:.3f}, {old_y:.3f}) mm para ({new_x:.3f}, "
+"{new_y:.3f}) mm. Guarde a placa (Ctrl+S) para persistir a alteração."
 
 #: actions/emc_emi_tools.py:114
 msgid ""
@@ -853,13 +933,6 @@ msgstr "(nenhuma etiqueta encontrada)"
 msgid "Falta o argumento 'text'."
 msgstr "Falta o argumento 'value'."
 
-#: actions/kicad_schematic_tools.py:387 actions/kicad_schematic_tools.py:552
-#: actions/kicad_write_tools.py:115 actions/kicad_write_tools.py:229
-#: actions/kicad_write_tools.py:395
-#, python-brace-format
-msgid "Argumentos 'x_mm'/'y_mm' inválidos: {err}"
-msgstr "Argumentos 'x_mm'/'y_mm' inválidos: {err}"
-
 #: actions/kicad_schematic_tools.py:393
 #, python-brace-format
 msgid "Argumento 'kind' inválido: '{kind}' (use 'local' ou 'global')."
@@ -912,16 +985,6 @@ msgstr "Falta o argumento 'value'."
 #, fuzzy
 msgid "Falta o argumento 'entry_name'."
 msgstr "Falta o argumento 'value'."
-
-#: actions/kicad_schematic_tools.py:546 actions/kicad_schematic_tools.py:702
-#: actions/kicad_write_tools.py:101 actions/pinout_generator_tools.py:167
-msgid "Falta o argumento 'reference'."
-msgstr "Falta o argumento 'reference'."
-
-#: actions/kicad_schematic_tools.py:558 actions/kicad_write_tools.py:236
-#, fuzzy, python-brace-format
-msgid "Argumento 'rotation_deg' inválido: {err}"
-msgstr "Argumento 'angle_deg' inválido: {err}"
 
 #: actions/kicad_schematic_tools.py:566
 #, python-brace-format
@@ -1035,11 +1098,6 @@ msgstr "Falta o argumento 'value'."
 #, fuzzy
 msgid "Falta o argumento 'footprint_name'."
 msgstr "Falta o argumento 'value'."
-
-#: actions/kicad_write_tools.py:219
-#, fuzzy, python-brace-format
-msgid "Já existe um componente com a referência '{reference}' na placa."
-msgstr "Componente '{reference}' não encontrado na placa."
 
 #: actions/kicad_write_tools.py:243
 #, python-brace-format
