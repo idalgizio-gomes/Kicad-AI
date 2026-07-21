@@ -82,6 +82,15 @@ _LANGUAGE_NAMES = {
 # Visual truncation limit for long tool results shown in the history control.
 _TOOL_RESULT_PREVIEW = 500
 
+# Drawn as its own line before every user message that starts a new turn
+# (never before the very first message in an empty history) — a plain-text
+# rule is what a wx.TextCtrl can render reliably across platforms; a real
+# border/background per bubble would need wx.html or wx.RichTextCtrl, a
+# much bigger change for the same practical benefit. User-reported: with no
+# visual break, it was hard to tell where a reply ended and the next
+# question began.
+_TURN_SEPARATOR = "─" * 60
+
 
 def _make_message(role, content, tool_calls=None, tool_call_id=None, attachments=None):
     """Build a ChatMessage, importing the dataclass lazily so this module does
@@ -576,6 +585,20 @@ class ChatDialog(wx.Dialog):
         )
         outer.Add(self._history, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 8)
 
+        # Bold+coloured role prefixes ("Você:"/"Assistente:") so a message's
+        # speaker is visible at a glance, not just from reading the text —
+        # complements the separator line below at turn boundaries. Built
+        # from the control's OWN font (copied, never mutated in place) so
+        # this never fights whatever font wx/the OS picked by default.
+        normal_font = self._history.GetFont()
+        bold_font = wx.Font(normal_font)
+        bold_font.MakeBold()
+        self._history_default_style = wx.TextAttr(wx.NullColour, wx.NullColour, normal_font)
+        self._role_styles = {
+            "user": wx.TextAttr(wx.Colour(0, 90, 200), wx.NullColour, bold_font),
+            "assistant": wx.TextAttr(wx.Colour(0, 130, 70), wx.NullColour, bold_font),
+        }
+
         # Drag-and-drop: dropping file(s) anywhere on the history pane or the
         # input box stages them exactly like "Anexar ficheiro..." (any file
         # type — see attachments.py). wx allows only one drop target per
@@ -1041,8 +1064,19 @@ class ChatDialog(wx.Dialog):
         # — i.e. everything from the length captured before the turn started.
         old_len = pre_turn_len
         self._messages = updated_messages
+        # wx.TextCtrl.AppendText always scrolls to the very END of the
+        # control — fine for a short reply, but a long one (several tool
+        # calls + results + final text) pushes the START of the reply
+        # (right where the user's eyes are, having just watched their own
+        # message go out) off-screen, forcing a manual scroll back up.
+        # User-reported. Fix: remember where this turn's new content
+        # begins BEFORE rendering it, then explicitly scroll back to THAT
+        # position afterward instead of leaving the caret wherever the
+        # last AppendText call left it.
+        reply_start = self._history.GetLastPosition()
         for msg in updated_messages[old_len:]:
             self._render_message(msg)
+        self._history.ShowPosition(reply_start)
         self._recompute_session_cost()
         self._set_busy(False)
         self._set_status(_("Pronto."))
@@ -1190,15 +1224,21 @@ class ChatDialog(wx.Dialog):
         attachments = getattr(msg, "attachments", None) or []
 
         if role == "user":
+            # A new user message starts a new turn — draw the separator
+            # BEFORE it (never before the very first line in an empty
+            # history) so the previous assistant reply is visibly closed
+            # off from what the user is about to ask next.
+            if self._history.GetLastPosition() > 0:
+                self._append_line(_TURN_SEPARATOR)
             if content.strip():
-                self._append_line(_("Você:") + " " + content.strip())
+                self._append_role_line("user", _("Você:"), content.strip())
             for attachment in attachments:
                 self._append_line(
                     _("[anexo] {name}").format(name=getattr(attachment, "name", "?"))
                 )
         elif role == "assistant":
             if content.strip():
-                self._append_line(_("Assistente:") + " " + content.strip())
+                self._append_role_line("assistant", _("Assistente:"), content.strip())
             elif not tool_calls:
                 # Never render nothing at all for a completed turn — an
                 # empty reply with no tool calls is a real (if rare)
@@ -1230,6 +1270,21 @@ class ChatDialog(wx.Dialog):
 
     def _append_line(self, text):
         self._history.AppendText(text + "\n")
+
+    def _append_role_line(self, role, prefix, text):
+        """Appends '<prefix> <text>' with the prefix bold+coloured per
+        ``self._role_styles`` (falls back to plain text for an unknown
+        role) and the rest in the control's normal style — always resets
+        the default style afterward so it never bleeds into later plain
+        lines (separators, tool/action lines, etc.)."""
+        style = self._role_styles.get(role)
+        if style is not None:
+            self._history.SetDefaultStyle(style)
+            self._history.AppendText(prefix)
+            self._history.SetDefaultStyle(self._history_default_style)
+            self._history.AppendText(" " + text + "\n")
+        else:
+            self._append_line(prefix + " " + text)
 
     def _append_error(self, text):
         self._append_line(_("[erro]") + " " + text)
