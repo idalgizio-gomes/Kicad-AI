@@ -269,7 +269,7 @@ def test_panelize_board_invokes_expected_argv(kikit_tools, tmp_path):
     assert argv[2] == "from kikit.ui import cli; cli()"
     assert argv[3] == "panelize"
     assert "--preset" in argv
-    assert argv[argv.index("--preset") + 1] == "default"
+    assert argv[argv.index("--preset") + 1] == ":default"
     assert "--layout" in argv
     layout_value = argv[argv.index("--layout") + 1]
     assert "grid" in layout_value

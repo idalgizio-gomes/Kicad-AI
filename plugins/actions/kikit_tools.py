@@ -228,7 +228,7 @@ def panelize_board(args: dict) -> str:
         "from kikit.ui import cli; cli()",
         "panelize",
         "--preset",
-        "default",
+        ":default",
         "--layout",
         layout_section,
         "--cuts",
