@@ -180,9 +180,9 @@ def scan_library_folder_for_duplicates(args: dict) -> str:
         return _("Pasta não encontrada: {path}").format(path=folder_path)
 
     try:
-        generic_scan = _load("generic_scan")
-        duplicate_index_mod = _load("duplicate_index")
-        matching_mod = _load("matching")
+        generic_scan = _load("KiCadImport.generic_scan")
+        duplicate_index_mod = _load("KiCadImport.duplicate_index")
+        matching_mod = _load("KiCadImport.matching")
     except SiblingPluginNotFoundError:
         return _not_installed_message()
     except ImportError as exc:
@@ -287,7 +287,7 @@ def generate_component_symbol(args: dict) -> str:
         raise RuntimeError(_("Falta o argumento 'dest_path'."))
 
     try:
-        symbol_generation = _load("symbol_generation")
+        symbol_generation = _load("KiCadImport.symbol_generation")
     except SiblingPluginNotFoundError:
         return _not_installed_message()
     except ImportError as exc:
@@ -395,7 +395,7 @@ def generate_component_footprint(args: dict) -> str:
     package_type = args.get("package_type") or "dual"
 
     try:
-        footprint_generation = _load("footprint_generation")
+        footprint_generation = _load("KiCadImport.footprint_generation")
     except SiblingPluginNotFoundError:
         return _not_installed_message()
     except ImportError as exc:

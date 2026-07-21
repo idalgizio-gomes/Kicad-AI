@@ -20,12 +20,16 @@ unavoidable limitation of file-based editing — never hidden or downplayed.
 kiutils bootstrap: kiutils is not bundled with this plugin. It lives inside
 the sibling LibForge plugin's own dev tree (as a git submodule). Exactly
 like ``libforge_tools.py``, we reach it by importing LibForge's own
-``matching`` submodule once (via ``_load("matching")``, itself built on
-``_sibling_plugin.py``'s synthetic-package loader) — that import has the
-side effect of inserting kiutils's ``src/`` directory onto ``sys.path``
-(see LibForge's own ``matching.py``, which does
+``KiCadImport.matching`` submodule once (via ``_load("KiCadImport.matching")``,
+itself built on ``_sibling_plugin.py``'s synthetic-package loader) — that
+import has the side effect of inserting kiutils's ``src/`` directory onto
+``sys.path`` (see LibForge's own ``KiCadImport/matching.py``, which does
 ``sys.path.insert(0, str(_KIUTILS_SRC))`` at import time). We don't use
 anything else FROM the matching module; triggering its import is enough.
+NOTE: ``matching.py`` (and its sibling submodules used by libforge_tools.py)
+live under LibForge's ``plugins/KiCadImport/`` package, NOT directly under
+``plugins/`` — a real bug shipped once because this was assumed flat; every
+``_load()`` call in this codebase must use the full dotted path.
 If the LibForge plugin isn't installed, ``_load()`` raises
 ``SiblingPluginNotFoundError``, which every handler turns into a clear
 "LibForge não está instalado" ``RuntimeError`` — never a raw ImportError.
@@ -179,7 +183,7 @@ def _open_schematic(sch_path: str):
     or the file fails to parse.
     """
     try:
-        _load("matching")
+        _load("KiCadImport.matching")
     except SiblingPluginNotFoundError:
         raise RuntimeError(_not_installed_message())
 

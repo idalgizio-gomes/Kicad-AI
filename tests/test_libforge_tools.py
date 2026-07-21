@@ -178,9 +178,9 @@ def test_scan_no_candidates_found(lft, monkeypatch, tmp_path):
         lft,
         monkeypatch,
         {
-            "generic_scan": _make_fake_generic_scan_module([]),
-            "duplicate_index": _make_fake_duplicate_index_module({}),
-            "matching": _make_fake_matching_module(),
+            "KiCadImport.generic_scan": _make_fake_generic_scan_module([]),
+            "KiCadImport.duplicate_index": _make_fake_duplicate_index_module({}),
+            "KiCadImport.matching": _make_fake_matching_module(),
         },
     )
     result = lft.scan_library_folder_for_duplicates(
@@ -214,9 +214,9 @@ def test_scan_classifies_candidates(lft, monkeypatch, tmp_path):
         lft,
         monkeypatch,
         {
-            "generic_scan": _make_fake_generic_scan_module(candidates),
-            "duplicate_index": _make_fake_duplicate_index_module(classify_map),
-            "matching": _make_fake_matching_module(),
+            "KiCadImport.generic_scan": _make_fake_generic_scan_module(candidates),
+            "KiCadImport.duplicate_index": _make_fake_duplicate_index_module(classify_map),
+            "KiCadImport.matching": _make_fake_matching_module(),
         },
     )
 
@@ -245,9 +245,9 @@ def test_scan_truncates_long_candidate_lists(lft, monkeypatch, tmp_path):
         lft,
         monkeypatch,
         {
-            "generic_scan": _make_fake_generic_scan_module(candidates),
-            "duplicate_index": _make_fake_duplicate_index_module({}),
-            "matching": _make_fake_matching_module(),
+            "KiCadImport.generic_scan": _make_fake_generic_scan_module(candidates),
+            "KiCadImport.duplicate_index": _make_fake_duplicate_index_module({}),
+            "KiCadImport.matching": _make_fake_matching_module(),
         },
     )
     result = lft.scan_library_folder_for_duplicates(
@@ -316,7 +316,7 @@ def test_generate_symbol_not_installed(lft, monkeypatch):
 
 def test_generate_symbol_invalid_electrical_type(lft, monkeypatch):
     _install_fake_sibling(
-        lft, monkeypatch, {"symbol_generation": _make_fake_symbol_generation_module()}
+        lft, monkeypatch, {"KiCadImport.symbol_generation": _make_fake_symbol_generation_module()}
     )
     with pytest.raises(RuntimeError):
         lft.generate_component_symbol(
@@ -330,7 +330,7 @@ def test_generate_symbol_invalid_electrical_type(lft, monkeypatch):
 
 def test_generate_symbol_success(lft, monkeypatch, tmp_path):
     _install_fake_sibling(
-        lft, monkeypatch, {"symbol_generation": _make_fake_symbol_generation_module()}
+        lft, monkeypatch, {"KiCadImport.symbol_generation": _make_fake_symbol_generation_module()}
     )
     dest = tmp_path / "MCP6002.kicad_sym"
     result = lft.generate_component_symbol(
@@ -351,7 +351,7 @@ def test_generate_symbol_success(lft, monkeypatch, tmp_path):
 
 def test_generate_symbol_reports_warnings(lft, monkeypatch, tmp_path):
     _install_fake_sibling(
-        lft, monkeypatch, {"symbol_generation": _make_fake_symbol_generation_module()}
+        lft, monkeypatch, {"KiCadImport.symbol_generation": _make_fake_symbol_generation_module()}
     )
     dest = tmp_path / "DUP.kicad_sym"
     result = lft.generate_component_symbol(
@@ -448,7 +448,7 @@ def test_generate_footprint_not_installed(lft, monkeypatch):
 
 def test_generate_footprint_invalid_package_type(lft, monkeypatch):
     _install_fake_sibling(
-        lft, monkeypatch, {"footprint_generation": _make_fake_footprint_generation_module()}
+        lft, monkeypatch, {"KiCadImport.footprint_generation": _make_fake_footprint_generation_module()}
     )
     result = lft.generate_component_footprint(
         {
@@ -467,7 +467,7 @@ def test_generate_footprint_invalid_package_type(lft, monkeypatch):
 
 def test_generate_footprint_success(lft, monkeypatch, tmp_path):
     _install_fake_sibling(
-        lft, monkeypatch, {"footprint_generation": _make_fake_footprint_generation_module()}
+        lft, monkeypatch, {"KiCadImport.footprint_generation": _make_fake_footprint_generation_module()}
     )
     dest = tmp_path / "SOIC8.kicad_mod"
     result = lft.generate_component_footprint(
