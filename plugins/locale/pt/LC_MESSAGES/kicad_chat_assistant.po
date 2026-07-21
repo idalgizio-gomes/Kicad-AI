@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KiCad Chat Assistant VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-21 21:14+0100\n"
+"POT-Creation-Date: 2026-07-21 21:34+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: pt\n"
@@ -38,12 +38,12 @@ msgstr "PDF demasiado grande ({size} KB, limite {limit} KB)."
 msgid "Ficheiro binário não suportado (não é imagem, PDF, nem texto legível)."
 msgstr "Ficheiro binário não suportado (não é imagem, PDF, nem texto legível)."
 
-#: chat_action.py:247
+#: chat_action.py:262
 #, python-brace-format
 msgid "Erro inesperado ao criar o provider '{provider_id}': {exc}"
 msgstr "Erro inesperado ao criar o provider '{provider_id}': {exc}"
 
-#: chat_action.py:266
+#: chat_action.py:281
 #, python-brace-format
 msgid ""
 "{label} não encontrou o comando '{cli}' no PATH.\n"
@@ -58,11 +58,11 @@ msgstr ""
 "Depois, autentique-se com a sua conta correndo '{cli}' num terminal (ou "
 "'{cli} login', se existir esse comando) e volte a selecionar o provider."
 
-#: chat_action.py:276 chat_action.py:289
+#: chat_action.py:291 chat_action.py:304
 msgid "Provedor não configurado"
 msgstr "Provedor não configurado"
 
-#: chat_action.py:281
+#: chat_action.py:296
 #, python-brace-format
 msgid ""
 "{label} não tem uma API key configurada.\n"
@@ -366,13 +366,17 @@ msgstr ""
 "precisa dele."
 
 #: actions/board2pdf_tools.py:115 actions/board2pdf_tools.py:236
-#: actions/jlcpcb_tools.py:140 actions/kicad_schematic_tools.py:151
-#: actions/kicad_write_tools.py:69 actions/kicad_write_tools.py:478
+#: actions/coil_creator_tools.py:146 actions/jlcpcb_tools.py:140
+#: actions/kicad_schematic_tools.py:151 actions/kicad_write_tools.py:69
+#: actions/kicad_write_tools.py:478 actions/pinout_generator_tools.py:125
+#: actions/round_tracks_tools.py:184
 msgid "pcbnew indisponível — esta ferramenta só funciona dentro do KiCad"
 msgstr "pcbnew indisponível — esta ferramenta só funciona dentro do KiCad"
 
-#: actions/board2pdf_tools.py:120 actions/jlcpcb_tools.py:145
-#: actions/kicad_schematic_tools.py:156 actions/kicad_write_tools.py:74
+#: actions/board2pdf_tools.py:120 actions/coil_creator_tools.py:151
+#: actions/jlcpcb_tools.py:145 actions/kicad_schematic_tools.py:156
+#: actions/kicad_write_tools.py:74 actions/pinout_generator_tools.py:130
+#: actions/round_tracks_tools.py:189
 msgid "Nenhum board KiCad está atualmente aberto"
 msgstr "Nenhum board KiCad está atualmente aberto"
 
@@ -431,6 +435,91 @@ msgstr "Falha ao exportar a placa para PDF (ficheiro de configuração: {cfg})."
 #, python-brace-format
 msgid "Placa exportada para PDF com sucesso (ficheiro de configuração: {cfg})."
 msgstr "Placa exportada para PDF com sucesso (ficheiro de configuração: {cfg})."
+
+#: actions/coil_creator_tools.py:133
+#, fuzzy
+msgid ""
+"O plugin Coil Creator não está instalado nesta máquina — esta ferramenta "
+"precisa dele."
+msgstr ""
+"O plugin LibForge não está instalado nesta máquina — esta ferramenta "
+"precisa dele."
+
+#: actions/coil_creator_tools.py:231
+msgid ""
+"Faltam ou são inválidos argumentos obrigatórios: layer_count, "
+"turns_per_layer, trace_width_mm, trace_spacing_mm, via_diameter_mm, "
+"via_drill_mm, outer_diameter_mm, x_mm, y_mm."
+msgstr ""
+"Faltam ou são inválidos argumentos obrigatórios: layer_count, "
+"turns_per_layer, trace_width_mm, trace_spacing_mm, via_diameter_mm, "
+"via_drill_mm, outer_diameter_mm, x_mm, y_mm."
+
+#: actions/coil_creator_tools.py:240
+#, fuzzy
+msgid "Falta o argumento 'coil_name'."
+msgstr "Falta o argumento 'value'."
+
+#: actions/coil_creator_tools.py:244
+msgid "'layer_count' deve ser >= 1."
+msgstr "'layer_count' deve ser >= 1."
+
+#: actions/coil_creator_tools.py:246
+msgid "'turns_per_layer' deve ser >= 1."
+msgstr "'turns_per_layer' deve ser >= 1."
+
+#: actions/coil_creator_tools.py:256
+#, python-brace-format
+msgid "'layer_names' tem {given} nome(s), mas 'layer_count' pede {needed}."
+msgstr "'layer_names' tem {given} nome(s), mas 'layer_count' pede {needed}."
+
+#: actions/coil_creator_tools.py:267
+msgid ""
+"'coil_name' não contém nenhum carácter válido para nome de ficheiro "
+"(letras, números, espaço, '.', '_')."
+msgstr ""
+"'coil_name' não contém nenhum carácter válido para nome de ficheiro "
+"(letras, números, espaço, '.', '_')."
+
+#: actions/coil_creator_tools.py:279
+#, fuzzy, python-brace-format
+msgid "Erro ao carregar o Coil Creator: {err}"
+msgstr "Erro ao executar {name}: {err}"
+
+#: actions/coil_creator_tools.py:297
+#, python-brace-format
+msgid ""
+"Erro ao gerar a geometria da bobina — verifique os parâmetros (ex.: "
+"diâmetro exterior demasiado pequeno para o número de voltas/vias pedido):"
+" {err}"
+msgstr ""
+"Erro ao gerar a geometria da bobina — verifique os parâmetros (ex.: "
+"diâmetro exterior demasiado pequeno para o número de voltas/vias pedido):"
+" {err}"
+
+#: actions/coil_creator_tools.py:312
+#, fuzzy, python-brace-format
+msgid "Erro ao carregar a bobina gerada como footprint: {err}"
+msgstr "Erro da API OpenAI: {err}"
+
+#: actions/coil_creator_tools.py:318
+msgid "Não foi possível carregar a bobina gerada como footprint."
+msgstr "Não foi possível carregar a bobina gerada como footprint."
+
+#: actions/coil_creator_tools.py:326
+#, python-brace-format
+msgid ""
+"Bobina '{name}' adicionada à placa em ({x:.3f}, {y:.3f}) mm ({layers} "
+"camada(s), {turns} volta(s)/camada, diâmetro exterior {outer:.3f} mm). A "
+"referência ficou 'REF**' (mesmo comportamento do plugin original) — "
+"anote/renumere manualmente se colidir com outra bobina já na placa. "
+"Guarde a placa (Ctrl+S) para persistir a alteração."
+msgstr ""
+"Bobina '{name}' adicionada à placa em ({x:.3f}, {y:.3f}) mm ({layers} "
+"camada(s), {turns} volta(s)/camada, diâmetro exterior {outer:.3f} mm). A "
+"referência ficou 'REF**' (mesmo comportamento do plugin original) — "
+"anote/renumere manualmente se colidir com outra bobina já na placa. "
+"Guarde a placa (Ctrl+S) para persistir a alteração."
 
 #: actions/emc_emi_tools.py:114
 msgid ""
@@ -606,7 +695,7 @@ msgstr ""
 "precisa dele."
 
 #: actions/kicad_parasitics_tools.py:153
-#, fuzzy, python-brace-format
+#, fuzzy
 msgid "Nenhum elemento de cobre encontrado na placa aberta."
 msgstr "Nenhuma trilha de cobre {scope} encontrada na placa aberta."
 
@@ -648,7 +737,7 @@ msgid "Erro ao carregar o KiCad-Parasitics: {err}"
 msgstr "Erro ao executar {name}: {err}"
 
 #: actions/kicad_parasitics_tools.py:257
-#, fuzzy, python-brace-format
+#, fuzzy
 msgid "Nenhum elemento de cobre (trilha/via/pad) encontrado na placa aberta."
 msgstr "Nenhuma trilha de cobre {scope} encontrada na placa aberta."
 
@@ -825,7 +914,7 @@ msgid "Falta o argumento 'entry_name'."
 msgstr "Falta o argumento 'value'."
 
 #: actions/kicad_schematic_tools.py:546 actions/kicad_schematic_tools.py:702
-#: actions/kicad_write_tools.py:101
+#: actions/kicad_write_tools.py:101 actions/pinout_generator_tools.py:167
 msgid "Falta o argumento 'reference'."
 msgstr "Falta o argumento 'reference'."
 
@@ -886,7 +975,7 @@ msgstr ""
 "\n"
 "... (truncado a {max_lines} linhas)"
 
-#: actions/kicad_write_tools.py:82
+#: actions/kicad_write_tools.py:82 actions/pinout_generator_tools.py:138
 #, python-brace-format
 msgid "Componente '{reference}' não encontrado na placa."
 msgstr "Componente '{reference}' não encontrado na placa."
@@ -1346,6 +1435,72 @@ msgstr "Erro ao escrever o ficheiro do footprint: {err}"
 #, python-brace-format
 msgid "Footprint '{name}' gerado e guardado em {path}."
 msgstr "Footprint '{name}' gerado e guardado em {path}."
+
+#: actions/pinout_generator_tools.py:112
+#, fuzzy
+msgid ""
+"O plugin Pinout Generator não está instalado nesta máquina — esta "
+"ferramenta precisa dele."
+msgstr ""
+"O plugin LibForge não está instalado nesta máquina — esta ferramenta "
+"precisa dele."
+
+#: actions/pinout_generator_tools.py:173
+#, python-brace-format
+msgid "Formato '{fmt}' inválido. Use um destes: {valid}."
+msgstr "Formato '{fmt}' inválido. Use um destes: {valid}."
+
+#: actions/pinout_generator_tools.py:189
+#, fuzzy, python-brace-format
+msgid "Erro ao carregar o Pinout Generator: {err}"
+msgstr "Erro ao executar {name}: {err}"
+
+#: actions/round_tracks_tools.py:171
+#, fuzzy
+msgid ""
+"O plugin Round Tracks não está instalado nesta máquina — esta ferramenta "
+"precisa dele."
+msgstr ""
+"O plugin LibForge não está instalado nesta máquina — esta ferramenta "
+"precisa dele."
+
+#: actions/round_tracks_tools.py:216
+msgid "'scaling' deve ser um número (mm)."
+msgstr "'scaling' deve ser um número (mm)."
+
+#: actions/round_tracks_tools.py:218
+msgid "'scaling' deve ser maior que zero."
+msgstr "'scaling' deve ser maior que zero."
+
+#: actions/round_tracks_tools.py:234
+#, fuzzy, python-brace-format
+msgid "Erro ao carregar o Round Tracks: {err}"
+msgstr "Erro ao executar {name}: {err}"
+
+#: actions/round_tracks_tools.py:241
+#, fuzzy
+msgid "Não foi possível determinar as classes de net da placa."
+msgstr ""
+"Não foi possível determinar o caminho do projeto para localizar o "
+"esquemático."
+
+#: actions/round_tracks_tools.py:248
+#, python-brace-format
+msgid "Classe de net '{name}' não encontrada. Classes disponíveis: {available}."
+msgstr "Classe de net '{name}' não encontrada. Classes disponíveis: {available}."
+
+#: actions/round_tracks_tools.py:286
+#, python-brace-format
+msgid ""
+"Arredondamento de trilhas concluído — classes de net processadas: "
+"{classes} (radius {scaling:g} mm, native={native}, "
+"avoid_junctions={avoid_junctions}). Segmentos de trilha na placa: "
+"{before} -> {after}."
+msgstr ""
+"Arredondamento de trilhas concluído — classes de net processadas: "
+"{classes} (radius {scaling:g} mm, native={native}, "
+"avoid_junctions={avoid_junctions}). Segmentos de trilha na placa: "
+"{before} -> {after}."
 
 #: llm_providers/__init__.py:70
 msgid "Claude (Anthropic - API paga)"

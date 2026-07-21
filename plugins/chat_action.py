@@ -113,6 +113,21 @@ try:  # pragma: no cover - import shim
 except ImportError:  # pragma: no cover - import shim
     from actions.jlcpcb_tools import register_jlcpcb_tools  # type: ignore[no-redef]
 
+try:  # pragma: no cover - import shim
+    from .actions.pinout_generator_tools import register_pinout_generator_tools
+except ImportError:  # pragma: no cover - import shim
+    from actions.pinout_generator_tools import register_pinout_generator_tools  # type: ignore[no-redef]
+
+try:  # pragma: no cover - import shim
+    from .actions.round_tracks_tools import register_round_tracks_tools
+except ImportError:  # pragma: no cover - import shim
+    from actions.round_tracks_tools import register_round_tracks_tools  # type: ignore[no-redef]
+
+try:  # pragma: no cover - import shim
+    from .actions.coil_creator_tools import register_coil_creator_tools
+except ImportError:  # pragma: no cover - import shim
+    from actions.coil_creator_tools import register_coil_creator_tools  # type: ignore[no-redef]
+
 # --- chat GUI --------------------------------------------------------------
 try:  # pragma: no cover - import shim
     from .chat_gui import ChatDialog
@@ -315,8 +330,10 @@ def _build_system_prompt() -> str:
         "Analyzer, LibForge, KiKit, FastHenry2/FastCap2, and third-party "
         "PCM-installed plugins: KiCad-Parasitics for resistance/impedance "
         "path analysis, Board2Pdf for PDF export, JLC-Plugin-for-KiCad for "
-        "JLCPCB fabrication files) that may not be installed on this user's "
-        "machine — if a tool call reports one is missing, relay that "
+        "JLCPCB fabrication files, Pinout Generator for pinout exports, "
+        "Round Tracks for rounding track corners, Coil Creator for spiral "
+        "PCB coils) that may not be installed on this user's machine — if "
+        "a tool call reports one is missing, relay that "
         "honestly instead of pretending it worked. These third-party tools "
         "are NOT this project's own code — treat their results as coming "
         "from an external plugin, and never claim broader KiCad-wide "
@@ -408,6 +425,9 @@ def run_chat(parent=None) -> None:
         register_kicad_parasitics_tools(registry)
         register_board2pdf_tools(registry)
         register_jlcpcb_tools(registry)
+        register_pinout_generator_tools(registry)
+        register_round_tracks_tools(registry)
+        register_coil_creator_tools(registry)
 
         system_prompt = _build_system_prompt()
         cost_alert_limit_usd = _resolve_cost_alert_limit(load_config())
