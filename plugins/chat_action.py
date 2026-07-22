@@ -158,6 +158,11 @@ try:  # pragma: no cover - import shim
 except ImportError:  # pragma: no cover - import shim
     from actions.freerouting_tools import register_freerouting_tools  # type: ignore[no-redef]
 
+try:  # pragma: no cover - import shim
+    from .actions.kbplacer_tools import register_kbplacer_tools
+except ImportError:  # pragma: no cover - import shim
+    from actions.kbplacer_tools import register_kbplacer_tools  # type: ignore[no-redef]
+
 # --- chat GUI --------------------------------------------------------------
 try:  # pragma: no cover - import shim
     from .chat_gui import ChatDialog
@@ -368,8 +373,9 @@ def _build_system_prompt() -> str:
         "Gerber/drill generation, ProjectInstances for hierarchical-sheet "
         "PCB replication STATUS only — reapplying the replication itself "
         "is not yet supported, only reporting what's already configured, "
-        "Freerouting for real Java-based autorouting) that may not be "
-        "installed on this user's machine — if "
+        "Freerouting for real Java-based autorouting, kbplacer for "
+        "mechanical-keyboard switch/diode placement from a KLE layout) "
+        "that may not be installed on this user's machine — if "
         "a tool call reports one is missing, relay that "
         "honestly instead of pretending it worked. These third-party tools "
         "are NOT this project's own code — treat their results as coming "
@@ -471,6 +477,7 @@ def run_chat(parent=None) -> None:
         register_cammer_tools(registry)
         register_projectinstances_tools(registry)
         register_freerouting_tools(registry)
+        register_kbplacer_tools(registry)
 
         system_prompt = _build_system_prompt()
         cost_alert_limit_usd = _resolve_cost_alert_limit(load_config())

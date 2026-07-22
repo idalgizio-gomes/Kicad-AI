@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KiCad Chat Assistant VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-22 02:41+0100\n"
+"POT-Creation-Date: 2026-07-22 02:48+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: pt\n"
@@ -38,12 +38,12 @@ msgstr "PDF demasiado grande ({size} KB, limite {limit} KB)."
 msgid "Ficheiro binário não suportado (não é imagem, PDF, nem texto legível)."
 msgstr "Ficheiro binário não suportado (não é imagem, PDF, nem texto legível)."
 
-#: chat_action.py:292
+#: chat_action.py:297
 #, python-brace-format
 msgid "Erro inesperado ao criar o provider '{provider_id}': {exc}"
 msgstr "Erro inesperado ao criar o provider '{provider_id}': {exc}"
 
-#: chat_action.py:311
+#: chat_action.py:316
 #, python-brace-format
 msgid ""
 "{label} não encontrou o comando '{cli}' no PATH.\n"
@@ -58,11 +58,11 @@ msgstr ""
 "Depois, autentique-se com a sua conta correndo '{cli}' num terminal (ou "
 "'{cli} login', se existir esse comando) e volte a selecionar o provider."
 
-#: chat_action.py:321 chat_action.py:334
+#: chat_action.py:326 chat_action.py:339
 msgid "Provedor não configurado"
 msgstr "Provedor não configurado"
 
-#: chat_action.py:326
+#: chat_action.py:331
 #, python-brace-format
 msgid ""
 "{label} não tem uma API key configurada.\n"
@@ -368,21 +368,21 @@ msgstr ""
 #: actions/board2pdf_tools.py:115 actions/board2pdf_tools.py:236
 #: actions/cammer_tools.py:114 actions/coil_creator_tools.py:146
 #: actions/coil_generators_tools.py:146 actions/freerouting_tools.py:100
-#: actions/jlcpcb_tools.py:140 actions/kicad_schematic_tools.py:151
-#: actions/kicad_write_tools.py:69 actions/kicad_write_tools.py:478
-#: actions/pinout_generator_tools.py:125 actions/projectinstances_tools.py:122
-#: actions/round_tracks_tools.py:184 actions/testpoints_tools.py:115
-#: actions/via_pad_tools.py:115
+#: actions/jlcpcb_tools.py:140 actions/kbplacer_tools.py:138
+#: actions/kicad_schematic_tools.py:151 actions/kicad_write_tools.py:69
+#: actions/kicad_write_tools.py:478 actions/pinout_generator_tools.py:125
+#: actions/projectinstances_tools.py:122 actions/round_tracks_tools.py:184
+#: actions/testpoints_tools.py:115 actions/via_pad_tools.py:115
 msgid "pcbnew indisponível — esta ferramenta só funciona dentro do KiCad"
 msgstr "pcbnew indisponível — esta ferramenta só funciona dentro do KiCad"
 
 #: actions/board2pdf_tools.py:120 actions/cammer_tools.py:119
 #: actions/coil_creator_tools.py:151 actions/coil_generators_tools.py:151
 #: actions/freerouting_tools.py:105 actions/jlcpcb_tools.py:145
-#: actions/kicad_schematic_tools.py:156 actions/kicad_write_tools.py:74
-#: actions/pinout_generator_tools.py:130 actions/projectinstances_tools.py:127
-#: actions/round_tracks_tools.py:189 actions/testpoints_tools.py:120
-#: actions/via_pad_tools.py:120
+#: actions/kbplacer_tools.py:143 actions/kicad_schematic_tools.py:156
+#: actions/kicad_write_tools.py:74 actions/pinout_generator_tools.py:130
+#: actions/projectinstances_tools.py:127 actions/round_tracks_tools.py:189
+#: actions/testpoints_tools.py:120 actions/via_pad_tools.py:120
 msgid "Nenhum board KiCad está atualmente aberto"
 msgstr "Nenhum board KiCad está atualmente aberto"
 
@@ -945,6 +945,83 @@ msgstr "Ficheiros na pasta de produção: {files}"
 msgid "Cópia de segurança adicional criada em: {path}"
 msgstr "Cópia de segurança adicional criada em: {path}"
 
+#: actions/kbplacer_tools.py:201
+#, fuzzy
+msgid "Falta o argumento 'layout_path'."
+msgstr "Falta o argumento 'value'."
+
+#: actions/kbplacer_tools.py:210
+#, fuzzy
+msgid ""
+"A placa aberta ainda não foi guardada em disco — guarde-a, ou indique "
+"'pcb_file_path' explicitamente."
+msgstr ""
+"A placa aberta ainda não foi guardada em disco — guarde-a antes de gerar "
+"os ficheiros de fabrico para a JLCPCB."
+
+#: actions/kbplacer_tools.py:219
+#, fuzzy
+msgid ""
+"O plugin kbplacer não está instalado nesta máquina — esta ferramenta "
+"precisa dele."
+msgstr ""
+"O plugin LibForge não está instalado nesta máquina — esta ferramenta "
+"precisa dele."
+
+#: actions/kbplacer_tools.py:227
+#, fuzzy
+msgid ""
+"Não foi encontrado o Python embutido do KiCad (necessário para correr o "
+"kbplacer). Verifique se o KiCad está corretamente instalado."
+msgstr ""
+"Não foi encontrado o Python embutido do KiCad (necessário para correr o "
+"KiKit). Verifique se o KiCad está corretamente instalado."
+
+#: actions/kbplacer_tools.py:260
+#, fuzzy, python-brace-format
+msgid "Argumento 'outline_delta' inválido: {err}"
+msgstr "Argumento 'angle_deg' inválido: {err}"
+
+#: actions/kbplacer_tools.py:284
+#, fuzzy, python-brace-format
+msgid "Argumento 'start_index' inválido: {err}"
+msgstr "Argumento 'angle_deg' inválido: {err}"
+
+#: actions/kbplacer_tools.py:305 actions/kikit_tools.py:257
+#, fuzzy, python-brace-format
+msgid "Não foi possível iniciar o Python do KiCad: {err}"
+msgstr "Não foi possível inicializar o fornecedor '{name}': {err}"
+
+#: actions/kbplacer_tools.py:309
+#, python-brace-format
+msgid "O kbplacer excedeu o tempo limite de {timeout}s."
+msgstr "O kbplacer excedeu o tempo limite de {timeout}s."
+
+#: actions/kbplacer_tools.py:316
+#, fuzzy, python-brace-format
+msgid ""
+"kbplacer falhou (código {code}):\n"
+"{stdout}\n"
+"{stderr}"
+msgstr ""
+"CAMmer falhou (código {code}):\n"
+"{report}"
+
+#: actions/kbplacer_tools.py:324
+#, python-brace-format
+msgid ""
+"kbplacer concluído com sucesso em {path}.\n"
+"{output}\n"
+"\n"
+"Feche e reabra a placa no KiCad para ver a alteração (esta ferramenta "
+"escreve o ficheiro .kicad_pcb diretamente, não a placa aberta ao vivo)."
+msgstr ""
+"kbplacer concluído com sucesso em {path}.\n"
+"{output}\n"
+"\n"
+"Feche e reabra a placa no KiCad para ver a alteração (esta ferramenta "
+"escreve o ficheiro .kicad_pcb diretamente, não a placa aberta ao vivo)."
+
 #: actions/kicad_parasitics_tools.py:95
 #, fuzzy
 msgid ""
@@ -1496,11 +1573,6 @@ msgid ""
 msgstr ""
 "Não foi encontrado o Python embutido do KiCad (necessário para correr o "
 "KiKit). Verifique se o KiCad está corretamente instalado."
-
-#: actions/kikit_tools.py:257
-#, fuzzy, python-brace-format
-msgid "Não foi possível iniciar o Python do KiCad: {err}"
-msgstr "Não foi possível inicializar o fornecedor '{name}': {err}"
 
 #: actions/kikit_tools.py:261
 #, fuzzy, python-brace-format

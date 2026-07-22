@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KiCad Chat Assistant VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-22 02:41+0100\n"
+"POT-Creation-Date: 2026-07-22 02:48+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: es\n"
@@ -38,12 +38,12 @@ msgstr ""
 msgid "Ficheiro binário não suportado (não é imagem, PDF, nem texto legível)."
 msgstr ""
 
-#: chat_action.py:292
+#: chat_action.py:297
 #, python-brace-format
 msgid "Erro inesperado ao criar o provider '{provider_id}': {exc}"
 msgstr ""
 
-#: chat_action.py:311
+#: chat_action.py:316
 #, python-brace-format
 msgid ""
 "{label} não encontrou o comando '{cli}' no PATH.\n"
@@ -53,11 +53,11 @@ msgid ""
 "'{cli} login', se existir esse comando) e volte a selecionar o provider."
 msgstr ""
 
-#: chat_action.py:321 chat_action.py:334
+#: chat_action.py:326 chat_action.py:339
 msgid "Provedor não configurado"
 msgstr ""
 
-#: chat_action.py:326
+#: chat_action.py:331
 #, python-brace-format
 msgid ""
 "{label} não tem uma API key configurada.\n"
@@ -336,21 +336,21 @@ msgstr ""
 #: actions/board2pdf_tools.py:115 actions/board2pdf_tools.py:236
 #: actions/cammer_tools.py:114 actions/coil_creator_tools.py:146
 #: actions/coil_generators_tools.py:146 actions/freerouting_tools.py:100
-#: actions/jlcpcb_tools.py:140 actions/kicad_schematic_tools.py:151
-#: actions/kicad_write_tools.py:69 actions/kicad_write_tools.py:478
-#: actions/pinout_generator_tools.py:125 actions/projectinstances_tools.py:122
-#: actions/round_tracks_tools.py:184 actions/testpoints_tools.py:115
-#: actions/via_pad_tools.py:115
+#: actions/jlcpcb_tools.py:140 actions/kbplacer_tools.py:138
+#: actions/kicad_schematic_tools.py:151 actions/kicad_write_tools.py:69
+#: actions/kicad_write_tools.py:478 actions/pinout_generator_tools.py:125
+#: actions/projectinstances_tools.py:122 actions/round_tracks_tools.py:184
+#: actions/testpoints_tools.py:115 actions/via_pad_tools.py:115
 msgid "pcbnew indisponível — esta ferramenta só funciona dentro do KiCad"
 msgstr ""
 
 #: actions/board2pdf_tools.py:120 actions/cammer_tools.py:119
 #: actions/coil_creator_tools.py:151 actions/coil_generators_tools.py:151
 #: actions/freerouting_tools.py:105 actions/jlcpcb_tools.py:145
-#: actions/kicad_schematic_tools.py:156 actions/kicad_write_tools.py:74
-#: actions/pinout_generator_tools.py:130 actions/projectinstances_tools.py:127
-#: actions/round_tracks_tools.py:189 actions/testpoints_tools.py:120
-#: actions/via_pad_tools.py:120
+#: actions/kbplacer_tools.py:143 actions/kicad_schematic_tools.py:156
+#: actions/kicad_write_tools.py:74 actions/pinout_generator_tools.py:130
+#: actions/projectinstances_tools.py:127 actions/round_tracks_tools.py:189
+#: actions/testpoints_tools.py:120 actions/via_pad_tools.py:120
 msgid "Nenhum board KiCad está atualmente aberto"
 msgstr ""
 
@@ -836,6 +836,66 @@ msgstr ""
 msgid "Cópia de segurança adicional criada em: {path}"
 msgstr ""
 
+#: actions/kbplacer_tools.py:201
+msgid "Falta o argumento 'layout_path'."
+msgstr ""
+
+#: actions/kbplacer_tools.py:210
+msgid ""
+"A placa aberta ainda não foi guardada em disco — guarde-a, ou indique "
+"'pcb_file_path' explicitamente."
+msgstr ""
+
+#: actions/kbplacer_tools.py:219
+msgid ""
+"O plugin kbplacer não está instalado nesta máquina — esta ferramenta "
+"precisa dele."
+msgstr ""
+
+#: actions/kbplacer_tools.py:227
+msgid ""
+"Não foi encontrado o Python embutido do KiCad (necessário para correr o "
+"kbplacer). Verifique se o KiCad está corretamente instalado."
+msgstr ""
+
+#: actions/kbplacer_tools.py:260
+#, python-brace-format
+msgid "Argumento 'outline_delta' inválido: {err}"
+msgstr ""
+
+#: actions/kbplacer_tools.py:284
+#, python-brace-format
+msgid "Argumento 'start_index' inválido: {err}"
+msgstr ""
+
+#: actions/kbplacer_tools.py:305 actions/kikit_tools.py:257
+#, python-brace-format
+msgid "Não foi possível iniciar o Python do KiCad: {err}"
+msgstr ""
+
+#: actions/kbplacer_tools.py:309
+#, python-brace-format
+msgid "O kbplacer excedeu o tempo limite de {timeout}s."
+msgstr ""
+
+#: actions/kbplacer_tools.py:316
+#, python-brace-format
+msgid ""
+"kbplacer falhou (código {code}):\n"
+"{stdout}\n"
+"{stderr}"
+msgstr ""
+
+#: actions/kbplacer_tools.py:324
+#, python-brace-format
+msgid ""
+"kbplacer concluído com sucesso em {path}.\n"
+"{output}\n"
+"\n"
+"Feche e reabra a placa no KiCad para ver a alteração (esta ferramenta "
+"escreve o ficheiro .kicad_pcb diretamente, não a placa aberta ao vivo)."
+msgstr ""
+
 #: actions/kicad_parasitics_tools.py:95
 msgid ""
 "O plugin KiCad-Parasitics não está instalado nesta máquina — esta "
@@ -1306,11 +1366,6 @@ msgstr ""
 msgid ""
 "Não foi encontrado o Python embutido do KiCad (necessário para correr o "
 "KiKit). Verifique se o KiCad está corretamente instalado."
-msgstr ""
-
-#: actions/kikit_tools.py:257
-#, python-brace-format
-msgid "Não foi possível iniciar o Python do KiCad: {err}"
 msgstr ""
 
 #: actions/kikit_tools.py:261
