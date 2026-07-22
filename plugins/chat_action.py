@@ -163,6 +163,11 @@ try:  # pragma: no cover - import shim
 except ImportError:  # pragma: no cover - import shim
     from actions.kbplacer_tools import register_kbplacer_tools  # type: ignore[no-redef]
 
+try:  # pragma: no cover - import shim
+    from .actions.kicad_pcm_tools import register_kicad_pcm_tools
+except ImportError:  # pragma: no cover - import shim
+    from actions.kicad_pcm_tools import register_kicad_pcm_tools  # type: ignore[no-redef]
+
 # --- chat GUI --------------------------------------------------------------
 try:  # pragma: no cover - import shim
     from .chat_gui import ChatDialog
@@ -380,7 +385,14 @@ def _build_system_prompt() -> str:
         "honestly instead of pretending it worked. These third-party tools "
         "are NOT this project's own code — treat their results as coming "
         "from an external plugin, and never claim broader KiCad-wide "
-        "capability than the specific tools actually registered.",
+        "capability than the specific tools actually registered. "
+        "Separately, search_kicad_plugins/install_kicad_plugin let you "
+        "search KiCad's official PCM catalog (or a specific GitHub repo) "
+        "and install a NEW plugin the user explicitly asks for — "
+        "installing runs arbitrary third-party code once KiCad restarts, "
+        "so only call install_kicad_plugin after the user has clearly "
+        "agreed to that SPECIFIC plugin, and always tell them a restart "
+        "is required before it becomes available.",
         "IMPORTANT limitations to always state honestly when relevant: PCB "
         "tools mutate the LIVE board in the open PCB editor (undoable via "
         "Ctrl+Z, never auto-saved — the user must save with Ctrl+S). "
@@ -478,6 +490,7 @@ def run_chat(parent=None) -> None:
         register_projectinstances_tools(registry)
         register_freerouting_tools(registry)
         register_kbplacer_tools(registry)
+        register_kicad_pcm_tools(registry)
 
         system_prompt = _build_system_prompt()
         cost_alert_limit_usd = _resolve_cost_alert_limit(load_config())

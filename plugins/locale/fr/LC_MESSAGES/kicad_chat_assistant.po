@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KiCad Chat Assistant VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-22 02:48+0100\n"
+"POT-Creation-Date: 2026-07-22 02:54+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -38,12 +38,12 @@ msgstr ""
 msgid "Ficheiro binário não suportado (não é imagem, PDF, nem texto legível)."
 msgstr ""
 
-#: chat_action.py:297
+#: chat_action.py:302
 #, python-brace-format
 msgid "Erro inesperado ao criar o provider '{provider_id}': {exc}"
 msgstr ""
 
-#: chat_action.py:316
+#: chat_action.py:321
 #, python-brace-format
 msgid ""
 "{label} não encontrou o comando '{cli}' no PATH.\n"
@@ -53,11 +53,11 @@ msgid ""
 "'{cli} login', se existir esse comando) e volte a selecionar o provider."
 msgstr ""
 
-#: chat_action.py:326 chat_action.py:339
+#: chat_action.py:331 chat_action.py:344
 msgid "Provedor não configurado"
 msgstr ""
 
-#: chat_action.py:331
+#: chat_action.py:336
 #, python-brace-format
 msgid ""
 "{label} não tem uma API key configurada.\n"
@@ -946,6 +946,195 @@ msgid ""
 "Ponto 1 ({x1:.3f}, {y1:.3f}) mm -> elemento {type1} mais próximo a "
 "{d1:.3f} mm; Ponto 2 ({x2:.3f}, {y2:.3f}) mm -> elemento {type2} mais "
 "próximo a {d2:.3f} mm."
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:136
+#, python-brace-format
+msgid "Pedido HTTP falhou ({code}) para {url}: {err}"
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:142
+#, python-brace-format
+msgid "Não foi possível contactar {url}: {err}"
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:146
+#, python-brace-format
+msgid "Erro de rede ao contactar {url}: {err}"
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:168
+#, python-brace-format
+msgid "Resposta inválida (não é JSON) do catálogo oficial: {err}"
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:190
+#, python-brace-format
+msgid ""
+"'github_owner_repo' inválido: '{value}' — use o formato "
+"'dono/repositorio'."
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:201
+#, python-brace-format
+msgid ""
+"O repositório '{repo}' não tem um metadata.json válido na raiz (ou não é "
+"um pacote KiCad PCM): {err}"
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:216
+#, python-brace-format
+msgid "O pacote '{name}' não tem nenhuma versão publicada."
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:242
+#, python-brace-format
+msgid "Pasta de dados do KiCad não encontrada: {path}"
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:251
+#, python-brace-format
+msgid "Nenhuma versão do KiCad encontrada em {path}"
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:267
+#, python-brace-format
+msgid ""
+"Arquivo rejeitado por segurança: entrada '{member}' tentaria escrever "
+"fora da pasta de destino."
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:310
+msgid "Falta o argumento 'github_owner_repo' para source='github'."
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:316
+#, python-brace-format
+msgid "Pacote encontrado em github.com/{repo}:"
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:319
+#, python-brace-format
+msgid "  Nome: {name}"
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:320
+#, python-brace-format
+msgid "  Identificador: {identifier}"
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:323
+#, python-brace-format
+msgid "  Descrição: {description}"
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:326
+#, python-brace-format
+msgid "  Licença: {license}"
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:327
+#, python-brace-format
+msgid "  Última versão: {version} (KiCad >= {kicad_version})"
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:332
+msgid ""
+"  AVISO: este pacote NÃO passa pelo catálogo oficial do KiCad — o hash de"
+" integridade é auto-declarado pelo próprio autor do repositório, não "
+"verificado de forma independente."
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:342
+#, python-brace-format
+msgid "Argumento 'source' inválido: '{source}' (use 'official' ou 'github')."
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:368
+#, python-brace-format
+msgid "Nenhum pacote encontrado no catálogo oficial do KiCad para '{query}'."
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:372
+#, python-brace-format
+msgid "{n} pacote(s) encontrado(s) no catálogo oficial do KiCad para '{query}':"
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:386
+msgid "versão"
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:388
+msgid "licença"
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:395
+#, python-brace-format
+msgid "... (truncado a {n} resultados; refine a pesquisa)"
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:434
+msgid ""
+"Indique exatamente um de 'identifier' (catálogo oficial) ou "
+"'github_owner_repo' (instalação direta do GitHub), nunca os dois nem "
+"nenhum."
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:444
+#, python-brace-format
+msgid "GitHub ({repo}, NÃO verificado pelo catálogo oficial)"
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:455
+#, python-brace-format
+msgid ""
+"Identificador '{identifier}' não encontrado no catálogo oficial — use "
+"search_kicad_plugins primeiro para confirmar o identificador exato."
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:460
+msgid "catálogo oficial do KiCad"
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:464
+msgid "O pacote não tem um 'identifier' válido."
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:471
+#, python-brace-format
+msgid "A versão escolhida de '{identifier}' não tem download_url."
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:482
+#, python-brace-format
+msgid ""
+"Já existe algo instalado em {path} — desinstale primeiro (Gestor de "
+"Conteúdo e Plug-ins do KiCad) antes de reinstalar."
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:494
+#, python-brace-format
+msgid ""
+"Verificação de integridade falhou para '{identifier}': SHA256 esperado "
+"{expected}, obtido {actual}. A transferência pode estar corrompida ou "
+"adulterada — a instalação foi cancelada."
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:511
+#, python-brace-format
+msgid ""
+"A versão escolhida de '{identifier}' não declara um download_sha256 — "
+"recusando instalar sem verificação de integridade."
+msgstr ""
+
+#: actions/kicad_pcm_tools.py:532
+#, python-brace-format
+msgid ""
+"Pacote '{name}' ({identifier}) instalado a partir de {source} em:\n"
+"{path}\n"
+"\n"
+"REINICIE o KiCad para o plugin ficar disponível — os plugins só são "
+"detetados no arranque."
 msgstr ""
 
 #: actions/kicad_schematic_tools.py:118
