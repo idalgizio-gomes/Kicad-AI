@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KiCad Chat Assistant VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-21 21:41+0100\n"
+"POT-Creation-Date: 2026-07-22 02:21+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ca\n"
@@ -38,12 +38,12 @@ msgstr ""
 msgid "Ficheiro binário não suportado (não é imagem, PDF, nem texto legível)."
 msgstr ""
 
-#: chat_action.py:267
+#: chat_action.py:272
 #, python-brace-format
 msgid "Erro inesperado ao criar o provider '{provider_id}': {exc}"
 msgstr ""
 
-#: chat_action.py:286
+#: chat_action.py:291
 #, python-brace-format
 msgid ""
 "{label} não encontrou o comando '{cli}' no PATH.\n"
@@ -53,11 +53,11 @@ msgid ""
 "'{cli} login', se existir esse comando) e volte a selecionar o provider."
 msgstr ""
 
-#: chat_action.py:296 chat_action.py:309
+#: chat_action.py:301 chat_action.py:314
 msgid "Provedor não configurado"
 msgstr ""
 
-#: chat_action.py:301
+#: chat_action.py:306
 #, python-brace-format
 msgid ""
 "{label} não tem uma API key configurada.\n"
@@ -338,6 +338,7 @@ msgstr ""
 #: actions/jlcpcb_tools.py:140 actions/kicad_schematic_tools.py:151
 #: actions/kicad_write_tools.py:69 actions/kicad_write_tools.py:478
 #: actions/pinout_generator_tools.py:125 actions/round_tracks_tools.py:184
+#: actions/via_pad_tools.py:115
 msgid "pcbnew indisponível — esta ferramenta só funciona dentro do KiCad"
 msgstr ""
 
@@ -345,6 +346,7 @@ msgstr ""
 #: actions/coil_generators_tools.py:151 actions/jlcpcb_tools.py:145
 #: actions/kicad_schematic_tools.py:156 actions/kicad_write_tools.py:74
 #: actions/pinout_generator_tools.py:130 actions/round_tracks_tools.py:189
+#: actions/via_pad_tools.py:120
 msgid "Nenhum board KiCad está atualmente aberto"
 msgstr ""
 
@@ -1025,7 +1027,7 @@ msgid ""
 "(Ctrl+S) para persistir a alteração."
 msgstr ""
 
-#: actions/kicad_write_tools.py:350
+#: actions/kicad_write_tools.py:350 actions/via_pad_tools.py:146
 msgid "Falta o argumento 'uuid'."
 msgstr ""
 
@@ -1379,6 +1381,48 @@ msgid ""
 "{classes} (radius {scaling:g} mm, native={native}, "
 "avoid_junctions={avoid_junctions}). Segmentos de trilha na placa: "
 "{before} -> {after}."
+msgstr ""
+
+#: actions/via_pad_tools.py:103
+#, python-brace-format
+msgid ""
+"O plugin '{name}' não está instalado nesta máquina — esta ferramenta "
+"precisa dele."
+msgstr ""
+
+#: actions/via_pad_tools.py:157
+#, python-brace-format
+msgid "Nenhuma via encontrada com uuid '{uuid}'."
+msgstr ""
+
+#: actions/via_pad_tools.py:183
+#, python-brace-format
+msgid ""
+"Via '{uuid}' substituída por um pad de relevo térmico ({drill_mm:.3f} mm "
+"de furo, {width_mm:.3f} mm de diâmetro). Guarde a placa (Ctrl+S) para "
+"persistir a alteração."
+msgstr ""
+
+#: actions/via_pad_tools.py:212
+#, python-brace-format
+msgid "Argumento 'diameter_mm' inválido: {err}"
+msgstr ""
+
+#: actions/via_pad_tools.py:215
+msgid "'diameter_mm' deve ser maior que zero."
+msgstr ""
+
+#: actions/via_pad_tools.py:222
+#, python-brace-format
+msgid "Erro ao carregar o Set Hole Diameter: {err}"
+msgstr ""
+
+#: actions/via_pad_tools.py:235
+#, python-brace-format
+msgid ""
+"Diâmetro de furo alterado para {diameter_mm:.3f} mm em {pad_count} "
+"pad(s), em TODA a placa. Guarde a placa (Ctrl+S) para persistir a "
+"alteração."
 msgstr ""
 
 #: llm_providers/__init__.py:70
