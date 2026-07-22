@@ -148,6 +148,11 @@ try:  # pragma: no cover - import shim
 except ImportError:  # pragma: no cover - import shim
     from actions.cammer_tools import register_cammer_tools  # type: ignore[no-redef]
 
+try:  # pragma: no cover - import shim
+    from .actions.projectinstances_tools import register_projectinstances_tools
+except ImportError:  # pragma: no cover - import shim
+    from actions.projectinstances_tools import register_projectinstances_tools  # type: ignore[no-redef]
+
 # --- chat GUI --------------------------------------------------------------
 try:  # pragma: no cover - import shim
     from .chat_gui import ChatDialog
@@ -355,8 +360,10 @@ def _build_system_prompt() -> str:
         "Generators for spiral/loop PCB coils, Thermal Relief Via and Set "
         "Hole Diameter for via/pad geometry, kicad_testpoints for "
         "bed-of-nails test-point CSV export, SparkFun CAMmer for zipped "
-        "Gerber/drill generation) that may not be installed on this "
-        "user's machine — if "
+        "Gerber/drill generation, ProjectInstances for hierarchical-sheet "
+        "PCB replication STATUS only — reapplying the replication itself "
+        "is not yet supported, only reporting what's already configured) "
+        "that may not be installed on this user's machine — if "
         "a tool call reports one is missing, relay that "
         "honestly instead of pretending it worked. These third-party tools "
         "are NOT this project's own code — treat their results as coming "
@@ -456,6 +463,7 @@ def run_chat(parent=None) -> None:
         register_via_pad_tools(registry)
         register_testpoints_tools(registry)
         register_cammer_tools(registry)
+        register_projectinstances_tools(registry)
 
         system_prompt = _build_system_prompt()
         cost_alert_limit_usd = _resolve_cost_alert_limit(load_config())

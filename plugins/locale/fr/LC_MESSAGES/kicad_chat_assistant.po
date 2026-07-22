@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KiCad Chat Assistant VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-22 02:32+0100\n"
+"POT-Creation-Date: 2026-07-22 02:36+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -38,12 +38,12 @@ msgstr ""
 msgid "Ficheiro binário não suportado (não é imagem, PDF, nem texto legível)."
 msgstr ""
 
-#: chat_action.py:282
+#: chat_action.py:287
 #, python-brace-format
 msgid "Erro inesperado ao criar o provider '{provider_id}': {exc}"
 msgstr ""
 
-#: chat_action.py:301
+#: chat_action.py:306
 #, python-brace-format
 msgid ""
 "{label} não encontrou o comando '{cli}' no PATH.\n"
@@ -53,11 +53,11 @@ msgid ""
 "'{cli} login', se existir esse comando) e volte a selecionar o provider."
 msgstr ""
 
-#: chat_action.py:311 chat_action.py:324
+#: chat_action.py:316 chat_action.py:329
 msgid "Provedor não configurado"
 msgstr ""
 
-#: chat_action.py:316
+#: chat_action.py:321
 #, python-brace-format
 msgid ""
 "{label} não tem uma API key configurada.\n"
@@ -338,8 +338,8 @@ msgstr ""
 #: actions/coil_generators_tools.py:146 actions/jlcpcb_tools.py:140
 #: actions/kicad_schematic_tools.py:151 actions/kicad_write_tools.py:69
 #: actions/kicad_write_tools.py:478 actions/pinout_generator_tools.py:125
-#: actions/round_tracks_tools.py:184 actions/testpoints_tools.py:115
-#: actions/via_pad_tools.py:115
+#: actions/projectinstances_tools.py:122 actions/round_tracks_tools.py:184
+#: actions/testpoints_tools.py:115 actions/via_pad_tools.py:115
 msgid "pcbnew indisponível — esta ferramenta só funciona dentro do KiCad"
 msgstr ""
 
@@ -347,8 +347,8 @@ msgstr ""
 #: actions/coil_creator_tools.py:151 actions/coil_generators_tools.py:151
 #: actions/jlcpcb_tools.py:145 actions/kicad_schematic_tools.py:156
 #: actions/kicad_write_tools.py:74 actions/pinout_generator_tools.py:130
-#: actions/round_tracks_tools.py:189 actions/testpoints_tools.py:120
-#: actions/via_pad_tools.py:120
+#: actions/projectinstances_tools.py:127 actions/round_tracks_tools.py:189
+#: actions/testpoints_tools.py:120 actions/via_pad_tools.py:120
 msgid "Nenhum board KiCad está atualmente aberto"
 msgstr ""
 
@@ -826,7 +826,7 @@ msgid ""
 "esquemático."
 msgstr ""
 
-#: actions/kicad_schematic_tools.py:173
+#: actions/kicad_schematic_tools.py:173 actions/projectinstances_tools.py:173
 #, python-brace-format
 msgid "Esquemático não encontrado: {path}"
 msgstr ""
@@ -1402,6 +1402,52 @@ msgstr ""
 #: actions/pinout_generator_tools.py:189
 #, python-brace-format
 msgid "Erro ao carregar o Pinout Generator: {err}"
+msgstr ""
+
+#: actions/projectinstances_tools.py:110
+msgid ""
+"O plugin ProjectInstances não está instalado nesta máquina — esta "
+"ferramenta precisa dele."
+msgstr ""
+
+#: actions/projectinstances_tools.py:135
+msgid "ativo"
+msgstr ""
+
+#: actions/projectinstances_tools.py:135
+msgid "inativo"
+msgstr ""
+
+#: actions/projectinstances_tools.py:166
+msgid ""
+"A placa aberta ainda não foi guardada em disco — não é possível localizar"
+" o esquemático/configuração associados."
+msgstr ""
+
+#: actions/projectinstances_tools.py:183
+#, python-brace-format
+msgid "Erro ao carregar o ProjectInstances: {err}"
+msgstr ""
+
+#: actions/projectinstances_tools.py:190
+#, python-brace-format
+msgid "Erro ao ler a árvore de folhas hierárquicas: {err}"
+msgstr ""
+
+#: actions/projectinstances_tools.py:198
+#, python-brace-format
+msgid "Árvore de folhas hierárquicas para {sch}:"
+msgstr ""
+
+#: actions/projectinstances_tools.py:200
+#, python-brace-format
+msgid ""
+"(estado a partir de {config} — se o ficheiro não existir, todas as folhas"
+" aparecem como inativas por omissão)"
+msgstr ""
+
+#: actions/projectinstances_tools.py:209
+msgid "(nenhuma sub-folha encontrada — esquemático plano/sem hierarquia)"
 msgstr ""
 
 #: actions/round_tracks_tools.py:171
