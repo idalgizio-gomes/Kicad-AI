@@ -138,6 +138,11 @@ try:  # pragma: no cover - import shim
 except ImportError:  # pragma: no cover - import shim
     from actions.via_pad_tools import register_via_pad_tools  # type: ignore[no-redef]
 
+try:  # pragma: no cover - import shim
+    from .actions.testpoints_tools import register_testpoints_tools
+except ImportError:  # pragma: no cover - import shim
+    from actions.testpoints_tools import register_testpoints_tools  # type: ignore[no-redef]
+
 # --- chat GUI --------------------------------------------------------------
 try:  # pragma: no cover - import shim
     from .chat_gui import ChatDialog
@@ -343,8 +348,9 @@ def _build_system_prompt() -> str:
         "JLCPCB fabrication files, Pinout Generator for pinout exports, "
         "Round Tracks for rounding track corners, Coil Creator and Coil "
         "Generators for spiral/loop PCB coils, Thermal Relief Via and Set "
-        "Hole Diameter for via/pad geometry) that may not be installed "
-        "on this user's machine — if "
+        "Hole Diameter for via/pad geometry, kicad_testpoints for "
+        "bed-of-nails test-point CSV export) that may not be installed on "
+        "this user's machine — if "
         "a tool call reports one is missing, relay that "
         "honestly instead of pretending it worked. These third-party tools "
         "are NOT this project's own code — treat their results as coming "
@@ -442,6 +448,7 @@ def run_chat(parent=None) -> None:
         register_coil_creator_tools(registry)
         register_coil_generators_tools(registry)
         register_via_pad_tools(registry)
+        register_testpoints_tools(registry)
 
         system_prompt = _build_system_prompt()
         cost_alert_limit_usd = _resolve_cost_alert_limit(load_config())

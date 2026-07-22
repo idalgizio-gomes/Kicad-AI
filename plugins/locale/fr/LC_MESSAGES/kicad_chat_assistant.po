@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KiCad Chat Assistant VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-22 02:21+0100\n"
+"POT-Creation-Date: 2026-07-22 02:26+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -38,12 +38,12 @@ msgstr ""
 msgid "Ficheiro binário não suportado (não é imagem, PDF, nem texto legível)."
 msgstr ""
 
-#: chat_action.py:272
+#: chat_action.py:277
 #, python-brace-format
 msgid "Erro inesperado ao criar o provider '{provider_id}': {exc}"
 msgstr ""
 
-#: chat_action.py:291
+#: chat_action.py:296
 #, python-brace-format
 msgid ""
 "{label} não encontrou o comando '{cli}' no PATH.\n"
@@ -53,11 +53,11 @@ msgid ""
 "'{cli} login', se existir esse comando) e volte a selecionar o provider."
 msgstr ""
 
-#: chat_action.py:301 chat_action.py:314
+#: chat_action.py:306 chat_action.py:319
 msgid "Provedor não configurado"
 msgstr ""
 
-#: chat_action.py:306
+#: chat_action.py:311
 #, python-brace-format
 msgid ""
 "{label} não tem uma API key configurada.\n"
@@ -338,7 +338,7 @@ msgstr ""
 #: actions/jlcpcb_tools.py:140 actions/kicad_schematic_tools.py:151
 #: actions/kicad_write_tools.py:69 actions/kicad_write_tools.py:478
 #: actions/pinout_generator_tools.py:125 actions/round_tracks_tools.py:184
-#: actions/via_pad_tools.py:115
+#: actions/testpoints_tools.py:115 actions/via_pad_tools.py:115
 msgid "pcbnew indisponível — esta ferramenta só funciona dentro do KiCad"
 msgstr ""
 
@@ -346,7 +346,7 @@ msgstr ""
 #: actions/coil_generators_tools.py:151 actions/jlcpcb_tools.py:145
 #: actions/kicad_schematic_tools.py:156 actions/kicad_write_tools.py:74
 #: actions/pinout_generator_tools.py:130 actions/round_tracks_tools.py:189
-#: actions/via_pad_tools.py:120
+#: actions/testpoints_tools.py:120 actions/via_pad_tools.py:120
 msgid "Nenhum board KiCad está atualmente aberto"
 msgstr ""
 
@@ -1132,7 +1132,7 @@ msgstr ""
 msgid "Ficheiro de entrada não encontrado: {path}"
 msgstr ""
 
-#: actions/kikit_tools.py:174
+#: actions/kikit_tools.py:174 actions/testpoints_tools.py:147
 msgid "Falta o argumento 'output_path'."
 msgstr ""
 
@@ -1381,6 +1381,46 @@ msgid ""
 "{classes} (radius {scaling:g} mm, native={native}, "
 "avoid_junctions={avoid_junctions}). Segmentos de trilha na placa: "
 "{before} -> {after}."
+msgstr ""
+
+#: actions/testpoints_tools.py:103
+msgid ""
+"O plugin kicad_testpoints não está instalado nesta máquina — esta "
+"ferramenta precisa dele."
+msgstr ""
+
+#: actions/testpoints_tools.py:151
+#, python-brace-format
+msgid "'pad_pairs' deve ser uma lista de {reference, pad_number}."
+msgstr ""
+
+#: actions/testpoints_tools.py:163
+#, python-brace-format
+msgid "Erro ao carregar o kicad_testpoints: {err}"
+msgstr ""
+
+#: actions/testpoints_tools.py:173
+#, python-brace-format
+msgid ""
+"'pad_pairs[{i}]' inválido: esperava um objeto com 'reference' e "
+"'pad_number'."
+msgstr ""
+
+#: actions/testpoints_tools.py:187
+msgid ""
+"Nenhum pad marcado como 'Test Point' foi encontrado na placa, e nenhuma "
+"lista 'pad_pairs' foi indicada. Marque pads como Test Point no KiCad, ou "
+"indique 'pad_pairs' explicitamente."
+msgstr ""
+
+#: actions/testpoints_tools.py:203
+#, python-brace-format
+msgid "Erro ao escrever o relatório em {path}: {err}"
+msgstr ""
+
+#: actions/testpoints_tools.py:209
+#, python-brace-format
+msgid "Relatório de {n} test point(s) gerado em: {path}"
 msgstr ""
 
 #: actions/via_pad_tools.py:103
