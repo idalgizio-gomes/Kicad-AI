@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KiCad Chat Assistant VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-22 02:36+0100\n"
+"POT-Creation-Date: 2026-07-22 02:41+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: pt\n"
@@ -38,12 +38,12 @@ msgstr "PDF demasiado grande ({size} KB, limite {limit} KB)."
 msgid "Ficheiro binário não suportado (não é imagem, PDF, nem texto legível)."
 msgstr "Ficheiro binário não suportado (não é imagem, PDF, nem texto legível)."
 
-#: chat_action.py:287
+#: chat_action.py:292
 #, python-brace-format
 msgid "Erro inesperado ao criar o provider '{provider_id}': {exc}"
 msgstr "Erro inesperado ao criar o provider '{provider_id}': {exc}"
 
-#: chat_action.py:306
+#: chat_action.py:311
 #, python-brace-format
 msgid ""
 "{label} não encontrou o comando '{cli}' no PATH.\n"
@@ -58,11 +58,11 @@ msgstr ""
 "Depois, autentique-se com a sua conta correndo '{cli}' num terminal (ou "
 "'{cli} login', se existir esse comando) e volte a selecionar o provider."
 
-#: chat_action.py:316 chat_action.py:329
+#: chat_action.py:321 chat_action.py:334
 msgid "Provedor não configurado"
 msgstr "Provedor não configurado"
 
-#: chat_action.py:321
+#: chat_action.py:326
 #, python-brace-format
 msgid ""
 "{label} não tem uma API key configurada.\n"
@@ -367,20 +367,22 @@ msgstr ""
 
 #: actions/board2pdf_tools.py:115 actions/board2pdf_tools.py:236
 #: actions/cammer_tools.py:114 actions/coil_creator_tools.py:146
-#: actions/coil_generators_tools.py:146 actions/jlcpcb_tools.py:140
-#: actions/kicad_schematic_tools.py:151 actions/kicad_write_tools.py:69
-#: actions/kicad_write_tools.py:478 actions/pinout_generator_tools.py:125
-#: actions/projectinstances_tools.py:122 actions/round_tracks_tools.py:184
-#: actions/testpoints_tools.py:115 actions/via_pad_tools.py:115
+#: actions/coil_generators_tools.py:146 actions/freerouting_tools.py:100
+#: actions/jlcpcb_tools.py:140 actions/kicad_schematic_tools.py:151
+#: actions/kicad_write_tools.py:69 actions/kicad_write_tools.py:478
+#: actions/pinout_generator_tools.py:125 actions/projectinstances_tools.py:122
+#: actions/round_tracks_tools.py:184 actions/testpoints_tools.py:115
+#: actions/via_pad_tools.py:115
 msgid "pcbnew indisponível — esta ferramenta só funciona dentro do KiCad"
 msgstr "pcbnew indisponível — esta ferramenta só funciona dentro do KiCad"
 
 #: actions/board2pdf_tools.py:120 actions/cammer_tools.py:119
 #: actions/coil_creator_tools.py:151 actions/coil_generators_tools.py:151
-#: actions/jlcpcb_tools.py:145 actions/kicad_schematic_tools.py:156
-#: actions/kicad_write_tools.py:74 actions/pinout_generator_tools.py:130
-#: actions/projectinstances_tools.py:127 actions/round_tracks_tools.py:189
-#: actions/testpoints_tools.py:120 actions/via_pad_tools.py:120
+#: actions/freerouting_tools.py:105 actions/jlcpcb_tools.py:145
+#: actions/kicad_schematic_tools.py:156 actions/kicad_write_tools.py:74
+#: actions/pinout_generator_tools.py:130 actions/projectinstances_tools.py:127
+#: actions/round_tracks_tools.py:189 actions/testpoints_tools.py:120
+#: actions/via_pad_tools.py:120
 msgid "Nenhum board KiCad está atualmente aberto"
 msgstr "Nenhum board KiCad está atualmente aberto"
 
@@ -792,6 +794,108 @@ msgid ""
 msgstr ""
 "[aviso] Limite de {max_rounds} rondas de ferramentas atingido; a "
 "interromper o ciclo."
+
+#: actions/freerouting_tools.py:88
+#, fuzzy
+msgid ""
+"O plugin Freerouting não está instalado nesta máquina — esta ferramenta "
+"precisa dele."
+msgstr ""
+"O plugin LibForge não está instalado nesta máquina — esta ferramenta "
+"precisa dele."
+
+#: actions/freerouting_tools.py:114
+#, fuzzy, python-brace-format
+msgid "Ficheiro de configuração do Freerouting não encontrado: {path}"
+msgstr "Ficheiro não encontrado."
+
+#: actions/freerouting_tools.py:123
+msgid "plugin.ini do Freerouting não tem a secção [artifact]/location."
+msgstr "plugin.ini do Freerouting não tem a secção [artifact]/location."
+
+#: actions/freerouting_tools.py:129
+#, fuzzy, python-brace-format
+msgid "Ficheiro .jar do Freerouting não encontrado: {path}"
+msgstr "Ficheiro não encontrado."
+
+#: actions/freerouting_tools.py:164
+#, fuzzy
+msgid ""
+"\n"
+"... (truncado)"
+msgstr " ...[truncado]"
+
+#: actions/freerouting_tools.py:189
+#, fuzzy, python-brace-format
+msgid "Argumento 'timeout_seconds' inválido: {err}"
+msgstr "Argumento 'angle_deg' inválido: {err}"
+
+#: actions/freerouting_tools.py:192
+#, fuzzy
+msgid "'timeout_seconds' deve ser maior que zero."
+msgstr "'scaling' deve ser maior que zero."
+
+#: actions/freerouting_tools.py:199
+#, fuzzy
+msgid ""
+"A placa aberta ainda não foi guardada em disco — guarde-a antes de correr"
+" o autorouter."
+msgstr ""
+"A placa aberta ainda não foi guardada em disco — guarde-a antes de gerar "
+"os ficheiros de fabrico para a JLCPCB."
+
+#: actions/freerouting_tools.py:215
+#, python-brace-format
+msgid ""
+"Não foi encontrado um Java {min_version}+ no PATH. Corra o botão do "
+"plugin Freerouting no KiCad uma vez (oferece instalar o Java "
+"automaticamente), ou instale manualmente a partir de "
+"https://adoptium.net/temurin/releases, e reinicie o KiCad."
+msgstr ""
+"Não foi encontrado um Java {min_version}+ no PATH. Corra o botão do "
+"plugin Freerouting no KiCad uma vez (oferece instalar o Java "
+"automaticamente), ou instale manualmente a partir de "
+"https://adoptium.net/temurin/releases, e reinicie o KiCad."
+
+#: actions/freerouting_tools.py:230
+msgid "Falha ao exportar o ficheiro DSN a partir da placa."
+msgstr "Falha ao exportar o ficheiro DSN a partir da placa."
+
+#: actions/freerouting_tools.py:253
+#, python-brace-format
+msgid ""
+"O Freerouting excedeu o tempo limite de {timeout:.0f}s. Aumente "
+"'timeout_seconds' para placas mais complexas."
+msgstr ""
+"O Freerouting excedeu o tempo limite de {timeout:.0f}s. Aumente "
+"'timeout_seconds' para placas mais complexas."
+
+#: actions/freerouting_tools.py:261
+#, python-brace-format
+msgid ""
+"O Freerouting terminou sem gerar o ficheiro de resultado (código {code})."
+"\n"
+"{stdout}\n"
+"{stderr}"
+msgstr ""
+"O Freerouting terminou sem gerar o ficheiro de resultado (código {code})."
+"\n"
+"{stdout}\n"
+"{stderr}"
+
+#: actions/freerouting_tools.py:273
+msgid "Falha ao importar o resultado do routing para a placa."
+msgstr "Falha ao importar o resultado do routing para a placa."
+
+#: actions/freerouting_tools.py:284
+msgid ""
+"Autorouting concluído e importado para a placa. Guarde a placa (Ctrl+S) "
+"para persistir a alteração. Verifique o resultado (ex. run_drc) antes de "
+"confiar nele para produção."
+msgstr ""
+"Autorouting concluído e importado para a placa. Guarde a placa (Ctrl+S) "
+"para persistir a alteração. Verifique o resultado (ex. run_drc) antes de "
+"confiar nele para produção."
 
 #: actions/jlcpcb_tools.py:121
 #, fuzzy
