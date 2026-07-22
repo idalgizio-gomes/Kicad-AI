@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KiCad Chat Assistant VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-22 02:26+0100\n"
+"POT-Creation-Date: 2026-07-22 02:32+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -36,12 +36,12 @@ msgstr ""
 msgid "Ficheiro binário não suportado (não é imagem, PDF, nem texto legível)."
 msgstr ""
 
-#: chat_action.py:277
+#: chat_action.py:282
 #, python-brace-format
 msgid "Erro inesperado ao criar o provider '{provider_id}': {exc}"
 msgstr ""
 
-#: chat_action.py:296
+#: chat_action.py:301
 #, python-brace-format
 msgid ""
 "{label} não encontrou o comando '{cli}' no PATH.\n"
@@ -51,11 +51,11 @@ msgid ""
 "'{cli} login', se existir esse comando) e volte a selecionar o provider."
 msgstr ""
 
-#: chat_action.py:306 chat_action.py:319
+#: chat_action.py:311 chat_action.py:324
 msgid "Provedor não configurado"
 msgstr ""
 
-#: chat_action.py:311
+#: chat_action.py:316
 #, python-brace-format
 msgid ""
 "{label} não tem uma API key configurada.\n"
@@ -330,19 +330,21 @@ msgid ""
 msgstr ""
 
 #: actions/board2pdf_tools.py:115 actions/board2pdf_tools.py:236
-#: actions/coil_creator_tools.py:146 actions/coil_generators_tools.py:146
-#: actions/jlcpcb_tools.py:140 actions/kicad_schematic_tools.py:151
-#: actions/kicad_write_tools.py:69 actions/kicad_write_tools.py:478
-#: actions/pinout_generator_tools.py:125 actions/round_tracks_tools.py:184
-#: actions/testpoints_tools.py:115 actions/via_pad_tools.py:115
+#: actions/cammer_tools.py:114 actions/coil_creator_tools.py:146
+#: actions/coil_generators_tools.py:146 actions/jlcpcb_tools.py:140
+#: actions/kicad_schematic_tools.py:151 actions/kicad_write_tools.py:69
+#: actions/kicad_write_tools.py:478 actions/pinout_generator_tools.py:125
+#: actions/round_tracks_tools.py:184 actions/testpoints_tools.py:115
+#: actions/via_pad_tools.py:115
 msgid "pcbnew indisponível — esta ferramenta só funciona dentro do KiCad"
 msgstr ""
 
-#: actions/board2pdf_tools.py:120 actions/coil_creator_tools.py:151
-#: actions/coil_generators_tools.py:151 actions/jlcpcb_tools.py:145
-#: actions/kicad_schematic_tools.py:156 actions/kicad_write_tools.py:74
-#: actions/pinout_generator_tools.py:130 actions/round_tracks_tools.py:189
-#: actions/testpoints_tools.py:120 actions/via_pad_tools.py:120
+#: actions/board2pdf_tools.py:120 actions/cammer_tools.py:119
+#: actions/coil_creator_tools.py:151 actions/coil_generators_tools.py:151
+#: actions/jlcpcb_tools.py:145 actions/kicad_schematic_tools.py:156
+#: actions/kicad_write_tools.py:74 actions/pinout_generator_tools.py:130
+#: actions/round_tracks_tools.py:189 actions/testpoints_tools.py:120
+#: actions/via_pad_tools.py:120
 msgid "Nenhum board KiCad está atualmente aberto"
 msgstr ""
 
@@ -394,6 +396,62 @@ msgstr ""
 #: actions/board2pdf_tools.py:290
 #, python-brace-format
 msgid "Placa exportada para PDF com sucesso (ficheiro de configuração: {cfg})."
+msgstr ""
+
+#: actions/cammer_tools.py:102
+msgid ""
+"O plugin SparkFun KiCad CAMmer não está instalado nesta máquina — esta "
+"ferramenta precisa dele."
+msgstr ""
+
+#: actions/cammer_tools.py:144
+msgid ""
+"Indique pelo menos um de 'layers' ou 'edges' (não podem estar ambos "
+"vazios)."
+msgstr ""
+
+#: actions/cammer_tools.py:147
+msgid "'layers' deve ser uma lista de nomes de layer."
+msgstr ""
+
+#: actions/cammer_tools.py:149
+msgid "'edges' deve ser uma lista de nomes de layer."
+msgstr ""
+
+#: actions/cammer_tools.py:156
+msgid ""
+"A placa aberta ainda não foi guardada em disco — guarde-a antes de gerar "
+"os ficheiros Gerber."
+msgstr ""
+
+#: actions/cammer_tools.py:165
+#, python-brace-format
+msgid ""
+"Já existe um ficheiro '{path}' — apague-o ou mova-o antes de gerar de "
+"novo (esta ferramenta nunca sobrescreve silenciosamente, para evitar um "
+"diálogo de confirmação do próprio plugin que o chat não consegue "
+"responder)."
+msgstr ""
+
+#: actions/cammer_tools.py:177
+#, python-brace-format
+msgid "Erro ao carregar o CAMmer: {err}"
+msgstr ""
+
+#: actions/cammer_tools.py:195
+#, python-brace-format
+msgid ""
+"CAMmer falhou (código {code}):\n"
+"{report}"
+msgstr ""
+
+#: actions/cammer_tools.py:201
+#, python-brace-format
+msgid "CAMmer terminou com avisos (código {code}):\n"
+msgstr ""
+
+#: actions/cammer_tools.py:203
+msgid "CAMmer concluído com sucesso.\n"
 msgstr ""
 
 #: actions/coil_creator_tools.py:133
